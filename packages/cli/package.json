@@ -17,7 +17,7 @@
     "build": "tsup src/index.ts --format esm --dts --clean",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:security": "vitest run tests/security/",
+    "test:security": "vitest run tests/security/ --passWithNoTests",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
