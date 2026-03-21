@@ -1,0 +1,53 @@
+{
+  "name": "stackdev",
+  "version": "0.1.0",
+  "description": "Universal installer for the AI-native developer ecosystem",
+  "type": "module",
+  "bin": {
+    "stack": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "tsup src/index.ts --watch --format esm",
+    "build": "tsup src/index.ts --format esm --dts --clean",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:security": "vitest run tests/security/",
+    "lint": "eslint src/",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "chalk": "5.6.2",
+    "commander": "13.1.0",
+    "inquirer": "12.11.1",
+    "ora": "8.2.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.15",
+    "tsup": "8.5.1",
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  },
+  "keywords": [
+    "cli",
+    "ai",
+    "mcp",
+    "installer",
+    "developer-tools",
+    "ai-native"
+  ],
+  "license": "MIT",
+  "author": "Orpheo Hellandsjo",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/orpheohellandsjo/stack.git",
+    "directory": "packages/cli"
+  }
+}
