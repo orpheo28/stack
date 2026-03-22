@@ -19,6 +19,19 @@ export default tseslint.config(
     },
   },
   {
+    files: ['**/tests/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-non-null-assertion': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/strict-boolean-expressions': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+    },
+  },
+  {
     ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/*.config.*', '**/*.mjs'],
   },
 )

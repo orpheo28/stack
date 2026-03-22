@@ -130,16 +130,37 @@ type ArtifactType = 'mcp' | 'cli' | 'sdk' | 'api' | 'config'
 // config → CLAUDE.md | .cursorrules | .windsurfrules
 ```
 
-## Context Detection Priority
+## Context Detection — Multi-Client, Tiered
+
+A dev can have MULTIPLE clients active simultaneously. The detector returns an array of all detected clients. Each writer installs into ALL detected clients.
 
 ```typescript
-// detectors/context.ts — detection order, do not change
-// 1. ~/Library/Application Support/Claude/claude_desktop_config.json → claude-desktop
-// 2. .cursor/mcp.json (current dir or parents)                      → cursor
-// 3. .windsurfrules (current dir or parents)                        → windsurf
-// 4. package.json present                                            → node project
-// 5. .env or .env.local present                                     → inject env
-// 6. Nothing found                                                   → prompt user
+// detectors/context.ts — all tiers checked in parallel, no short-circuit
+
+// Tier 1 — MCP config files (certainty: confirmed, official docs)
+// claude-desktop → ~/Library/Application Support/Claude/claude_desktop_config.json (macOS)
+//                → $XDG_CONFIG_HOME/claude/claude_desktop_config.json (Linux)
+// cursor         → .cursor/mcp.json (cwd + parents)
+// vscode         → .vscode/mcp.json (cwd + parents)
+// windsurf       → .windsurfrules (cwd + parents)
+
+// Tier 2 — Coding agent CLIs (certainty: confirmed)
+// claude-code    → CLAUDE.md (cwd + parents)
+// codex          → AGENTS.md (cwd + parents)
+// opencode       → opencode.json OR .opencode/config.json (cwd only)
+
+// Tier 3 — Additional MCP clients (certainty: probable)
+// openclaw       → ~/.openclaw/config.json
+// continue       → .continue/config.json (cwd + parents)
+// zed            → ~/.config/zed/settings.json
+
+// Project type detection (always runs)
+// node           → package.json in cwd
+// python         → pyproject.toml OR requirements.txt in cwd
+// unknown        → neither found
+
+// Env file detection (always runs)
+// .env preferred over .env.local
 ```
 
 ## Security — Non-Negotiable

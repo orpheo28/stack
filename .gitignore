@@ -39,3 +39,4 @@ pnpm-debug.log*
 
 # Vercel
 .vercel/
+*.tsbuildinfo

@@ -2,6 +2,13 @@ import { Command } from 'commander'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
+import { createInstallCommand } from './commands/install.js'
+import { createPublishCommand } from './commands/publish.js'
+import { createSearchCommand } from './commands/search.js'
+import { createListCommand } from './commands/list.js'
+import { createRollbackCommand } from './commands/rollback.js'
+import { createRemoveCommand } from './commands/remove.js'
+import { createLoginCommand, createLogoutCommand, createWhoamiCommand } from './commands/auth.js'
 
 const currentFilePath = fileURLToPath(import.meta.url)
 const currentDirPath = dirname(currentFilePath)
@@ -38,15 +45,15 @@ export function createProgram(): Command {
     .description(pkg.description)
     .version(pkg.version, '-v, --version')
 
-  // Commands will be registered here as they are built
-  // Phase 1 build order from CLAUDE.md:
-  // 1. stack install <tool>
-  // 2. stack @handle
-  // 3. stack publish
-  // 4. stack search
-  // 5. stack list
-  // 6. stack remove
-  // 7. stack rollback
+  program.addCommand(createInstallCommand())
+  program.addCommand(createPublishCommand())
+  program.addCommand(createSearchCommand())
+  program.addCommand(createListCommand())
+  program.addCommand(createRollbackCommand())
+  program.addCommand(createRemoveCommand())
+  program.addCommand(createLoginCommand())
+  program.addCommand(createLogoutCommand())
+  program.addCommand(createWhoamiCommand())
 
   return program
 }
@@ -56,4 +63,9 @@ function main(): void {
   program.parse(process.argv)
 }
 
-main()
+const isDirectExecution =
+  process.argv[1] !== undefined && fileURLToPath(import.meta.url).includes(process.argv[1])
+
+if (isDirectExecution) {
+  main()
+}
