@@ -7,7 +7,7 @@ One command installs any tool — CLI, MCP server, SDK, AI config — directly c
 One public profile shows how you work, not just what you build.
 
 **Primitive**: Artifact (name, type, source, writers[], version, hash_sha256)
-**Product**: CLI (primary, npm: "stackdev", binary: "stack") > use.dev profiles (secondary) > Publisher Pro dashboard (later)
+**Product**: CLI (primary, npm: "usedev", binary: "stack") > getstack.com profiles (secondary) > Publisher Pro dashboard (later)
 
 ## Stack
 
@@ -88,7 +88,7 @@ stack/
 │   │   │   │   ├── verify.ts       # SHA256 integrity check
 │   │   │   │   └── whitelist.ts    # Allowed write paths
 │   │   │   ├── api/
-│   │   │   │   └── client.ts       # stack API calls to use.dev
+│   │   │   │   └── client.ts       # stack API calls to getstack.com
 │   │   │   ├── types/
 │   │   │   │   ├── artifact.ts     # Artifact type definitions
 │   │   │   │   └── errors.ts       # STACK_XXX error classes
@@ -311,8 +311,8 @@ Phase 1 — CLI (Semaine 1)
 Phase 2 — Web (Semaine 2)
 Only after Phase 1 is 100% complete and tested.
 13. Supabase schema + migrations + RLS
-14. use.dev/@handle profile page
-15. use.dev/ trending feed
+14. getstack.com/@handle profile page
+15. getstack.com/ trending feed
 16. API routes (copy event, install event)
 
 Phase 3 — Launch (Semaine 3)

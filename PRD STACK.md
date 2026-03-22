@@ -127,11 +127,11 @@ Le web sans le CLI est un annuaire. Le CLI sans le web est invisible. Les deux e
 
 #### Couche 1 — Le CLI (l'outil quotidien)
 
-Distribué via npm sous le package `stackdev`. Exécutable via npx sans installation globale. Node.js 18+. Open source dès le premier commit.
+Distribué via npm sous le package `usedev`. Exécutable via npx sans installation globale. Node.js 18+. Open source dès le premier commit.
 
 ```bash
 # Installation globale optionnelle
-npm install -g stackdev
+npm install -g usedev
 
 # Ou via npx sans installation
 npx stack install stripe
@@ -139,17 +139,17 @@ npx stack @orpheo
 npx stack publish
 ```
 
-#### Couche 2 — Le profil public stack.dev/@handle
+#### Couche 2 — Le profil public getstack.com/@handle
 
 Une page par dev générée automatiquement depuis son usage réel. Pas de contenu à créer. stack capture l'usage et le transforme en signal de réputation.
 
-**Exemple — stack.dev/@orpheo**
+**Exemple — getstack.com/@orpheo**
 Orphéo Hellandsjø · Lyon · Builder AI-native
 847 devs ont copié ce setup ce mois · Top 3% des builders français
 Stack : @supabase/mcp · @stripe/mcp · claude-rules/geloc · gws · +14 outils
 `npx stack @orpheo` [Copier]
 
-#### Couche 3 — Le feed de découverte stack.dev
+#### Couche 3 — Le feed de découverte getstack.com
 
 Page d'accueil avec les @handles trending, les nouveaux CLIs agent-native populaires, les setups les plus copiés cette semaine. C'est ici que la discovery se fait et que la viralité se construit.
 
@@ -157,18 +157,18 @@ Page d'accueil avec les @handles trending, les nouveaux CLIs agent-native popula
 
 ### 5.1 Toutes les commandes
 
-| Commande               | Description                    | Comportement détaillé                                                                                                            |
-| ---------------------- | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `stack @handle`        | Copie le setup d'un dev        | Télécharge son stack.json depuis stack.dev, installe tous ses outils, synce son CLAUDE.md et cursor rules dans le projet courant |
-| `stack install <name>` | Installe un outil              | Détecte le contexte (voir 5.3), télécharge depuis le registry, configure les bons fichiers, génère les clients si applicable     |
-| `stack install`        | Installe depuis stack.json     | Lit le stack.json du répertoire courant et installe tous les outils listés                                                       |
-| `stack publish`        | Publie ton setup               | Lit les outils installés localement, génère/met à jour le stack.json, publie sur stack.dev/@handle via l'API                     |
-| `stack search <q>`     | Recherche dans le registry     | Requête l'API stack.dev, affiche les résultats avec scores et commandes d'install                                                |
-| `stack list`           | Liste les outils installés     | Lit les configs locales (claude_desktop_config, .env, cursor rules) et liste les outils stack détectés                           |
-| `stack remove <name>`  | Désinstalle un outil           | Retire les entrées des fichiers de config, supprime les variables d'env, met à jour le stack.json                                |
-| `stack login`          | Authentification               | OAuth GitHub via browser, stocke le token dans le keychain OS                                                                    |
-| `stack logout`         | Déconnexion                    | Supprime le token du keychain                                                                                                    |
-| `stack whoami`         | Affiche l'utilisateur connecté | Affiche le handle, le profil stack.dev, le score d'adoption                                                                      |
+| Commande               | Description                    | Comportement détaillé                                                                                                               |
+| ---------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `stack @handle`        | Copie le setup d'un dev        | Télécharge son stack.json depuis getstack.com, installe tous ses outils, synce son CLAUDE.md et cursor rules dans le projet courant |
+| `stack install <name>` | Installe un outil              | Détecte le contexte (voir 5.3), télécharge depuis le registry, configure les bons fichiers, génère les clients si applicable        |
+| `stack install`        | Installe depuis stack.json     | Lit le stack.json du répertoire courant et installe tous les outils listés                                                          |
+| `stack publish`        | Publie ton setup               | Lit les outils installés localement, génère/met à jour le stack.json, publie sur getstack.com/@handle via l'API                     |
+| `stack search <q>`     | Recherche dans le registry     | Requête l'API getstack.com, affiche les résultats avec scores et commandes d'install                                                |
+| `stack list`           | Liste les outils installés     | Lit les configs locales (claude_desktop_config, .env, cursor rules) et liste les outils stack détectés                              |
+| `stack remove <name>`  | Désinstalle un outil           | Retire les entrées des fichiers de config, supprime les variables d'env, met à jour le stack.json                                   |
+| `stack login`          | Authentification               | OAuth GitHub via browser, stocke le token dans le keychain OS                                                                       |
+| `stack logout`         | Déconnexion                    | Supprime le token du keychain                                                                                                       |
+| `stack whoami`         | Affiche l'utilisateur connecté | Affiche le handle, le profil getstack.com, le score d'adoption                                                                      |
 
 ### 5.2 Context Detection — Logique de détection
 
@@ -207,8 +207,8 @@ Fichier JSON commité dans le repo. Équivalent du `package.json` pour les workf
 {
   "version": "1.0",
   "handle": "@orpheo",
-  "claude_md": "https://stack.dev/api/handles/orpheo/claude-md",
-  "cursor_rules": "https://stack.dev/api/handles/orpheo/cursor-rules",
+  "claude_md": "https://getstack.com/api/handles/orpheo/claude-md",
+  "cursor_rules": "https://getstack.com/api/handles/orpheo/cursor-rules",
   "tools": {
     "stripe": {
       "type": "mcp",
@@ -233,14 +233,14 @@ Fichier JSON commité dans le repo. Équivalent du `package.json` pour les workf
 
 C'est la feature la plus importante. Elle doit être parfaite.
 
-1.  Fetch `stack.dev/api/handles/{handle}/manifest` — récupère le JSON complet du handle
+1.  Fetch `getstack.com/api/handles/{handle}/manifest` — récupère le JSON complet du handle
 2.  Affiche un résumé de ce qui va être installé : X outils, CLAUDE.md de Y lignes, cursor rules
 3.  Demande confirmation : "Install @theo's setup? (14 tools + CLAUDE.md + cursor rules) [Y/n]"
 4.  Pour chaque outil dans `tools` : exécute la logique `stack install` en parallèle (`Promise.allSettled`)
 5.  Pour le CLAUDE.md : affiche le diff avec le CLAUDE.md existant si présent, demande confirmation
 6.  Pour les cursor rules : idem
 7.  Affiche le résultat : "✓ @theo's setup installed in 8.2s — 14 tools configured"
-8.  Incrémente le compteur d'adoption sur stack.dev (API call `POST /api/handles/{handle}/copy`)
+8.  Incrémente le compteur d'adoption sur getstack.com (API call `POST /api/handles/{handle}/copy`)
 
 ## 6. Architecture Technique Complète
 
@@ -249,7 +249,7 @@ C'est la feature la plus importante. Elle doit être parfaite.
 | Composant           | Technologie                                              | Justification                                                                                                          |
 | ------------------- | -------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | CLI                 | Node.js 18+, TypeScript, Commander.js, Inquirer.js       | Distribué sur npm, exécutable via npx. Commander pour le parsing des commandes, Inquirer pour les prompts interactifs. |
-| Frontend            | Next.js 14 App Router, TypeScript, Tailwind CSS          | SSR pour le SEO (les pages stack.dev/@handle doivent être indexées Google). Déployé sur Vercel (partenaire STACK).     |
+| Frontend            | Next.js 14 App Router, TypeScript, Tailwind CSS          | SSR pour le SEO (les pages getstack.com/@handle doivent être indexées Google). Déployé sur Vercel (partenaire STACK).  |
 | Backend / BDD       | Supabase (PostgreSQL + Auth + Realtime + Edge Functions) | Realtime pour le score d'adoption en temps réel. Auth GitHub OAuth. RLS pour la sécurité des données par handle.       |
 | Auth                | GitHub OAuth via Supabase Auth                           | La seule auth qui fait sens pour une communauté de devs. Zero friction.                                                |
 | Storage             | Supabase Storage                                         | Stockage des CLAUDE.md, cursor rules, stack.json par handle.                                                           |
@@ -275,11 +275,11 @@ stack/
 │ │ │ │ └── sdk.ts # npm install + génère client TS
 │ │ │ ├── detectors/ # Context detection
 │ │ │ │ └── context.ts # Détecte claude-desktop, cursor, windsurf
-│ │ │ ├── api/ # Calls vers stack.dev API
+│ │ │ ├── api/ # Calls vers getstack.com API
 │ │ │ │ └── client.ts
 │ │ │ └── index.ts # Entry point CLI
 │ │ └── package.json
-│ └── web/ # stack.dev (Next.js)
+│ └── web/ # getstack.com (Next.js)
 │ ├── app/
 │ │ ├── page.tsx # Feed trending
 │ │ ├── @[handle]/
@@ -350,18 +350,18 @@ CREATE TABLE install_events (
 );
 ```
 
-## 7. Web stack.dev — Spécifications
+## 7. Web getstack.com — Spécifications
 
 ### 7.1 Pages à builder
 
-| Page          | Route                      | Contenu                                                           | SEO target                          |
-| ------------- | -------------------------- | ----------------------------------------------------------------- | ----------------------------------- |
-| Feed trending | `stack.dev/`               | Top @handles semaine, nouveaux CLIs populaires, search bar        | "best ai dev setup 2026"            |
-| Profil handle | `stack.dev/@handle`        | Avatar, score adoption, stack, CLAUDE.md preview, commande copier | "@theo setup" "@theo claude code"   |
-| Page outil    | `stack.dev/install/stripe` | Description, score qualité, commande install, stats install       | "stripe mcp server"                 |
-| Search        | `stack.dev/search`         | Résultats cross-types, filtres par type                           | "pdf parsing mcp" "supabase claude" |
-| Trending CLIs | `stack.dev/trending`       | CLIs agent-native trending cette semaine                          | "best agent cli tools 2026"         |
-| Auth callback | `stack.dev/auth/callback`  | Callback GitHub OAuth                                             | N/A                                 |
+| Page          | Route                         | Contenu                                                           | SEO target                          |
+| ------------- | ----------------------------- | ----------------------------------------------------------------- | ----------------------------------- |
+| Feed trending | `getstack.com/`               | Top @handles semaine, nouveaux CLIs populaires, search bar        | "best ai dev setup 2026"            |
+| Profil handle | `getstack.com/@handle`        | Avatar, score adoption, stack, CLAUDE.md preview, commande copier | "@theo setup" "@theo claude code"   |
+| Page outil    | `getstack.com/install/stripe` | Description, score qualité, commande install, stats install       | "stripe mcp server"                 |
+| Search        | `getstack.com/search`         | Résultats cross-types, filtres par type                           | "pdf parsing mcp" "supabase claude" |
+| Trending CLIs | `getstack.com/trending`       | CLIs agent-native trending cette semaine                          | "best agent cli tools 2026"         |
+| Auth callback | `getstack.com/auth/callback`  | Callback GitHub OAuth                                             | N/A                                 |
 
 ### 7.2 Page profil @handle — Contenu exact
 
@@ -390,7 +390,7 @@ L'utilisateur ouvre Claude Code. Il commence à coder. Claude répond avec les p
 
 | Étape | Action                              | Effet                                        |
 | ----- | ----------------------------------- | -------------------------------------------- |
-| 1     | Dev influent publie son setup       | stack.dev/@lui créé automatiquement          |
+| 1     | Dev influent publie son setup       | getstack.com/@lui créé automatiquement       |
 | 2     | Il partage "npx stack @lui" sur X   | Ses followers voient stack pour la 1ère fois |
 | 3     | Ses followers exécutent la commande | Ils vivent le wow moment                     |
 | 4     | Ils créent leur propre @handle      | Nouveau canal de distribution                |
@@ -439,7 +439,7 @@ and configures the right files.
 
 ## Verify installation
 
-npx stacklist
+npx usedev list
 ```
 
 ### 9.2 Objectif de la skill
@@ -468,7 +468,7 @@ Chaque dev qui partage son @handle est une pub organique. La Claude skill fait l
 - STACK Hackathon (Juin 2026, H7 Lyon, ~100 devs) : stack.json obligatoire dans chaque projet soumis. Tous les participants créent leur @handle. stack devient la convention du hackathon.
 - Vercel (partenaire confirmé) : stack.json dans les starter templates Vercel AI SDK.
 - Claude skill : distribution via chaque conversation où un dev demande à configurer son environnement.
-- SEO : stack.dev/@handle et stack.dev/install/stripe rankent sur les requêtes dev AI-native.
+- SEO : getstack.com/@handle et getstack.com/install/stripe rankent sur les requêtes dev AI-native.
 
 ## 11. Métriques — Objectif A
 
@@ -491,14 +491,14 @@ Trois commandes uniquement. Rien d'autre.
 
 - `stack install stripe` — installe et configure Stripe MCP dans `claude_desktop_config.json`
 - `stack @orpheo` — copie le setup complet avec CLAUDE.md sync
-- `stack publish` — publie le setup sur stack.dev
+- `stack publish` — publie le setup sur getstack.com
 - Context detection pour Claude Desktop, Cursor, Windsurf
 - 20 intégrations pré-configurées (voir section 13)
 - stack.json spec
 
-### 12.2 Semaine 2 — Web stack.dev
+### 12.2 Semaine 2 — Web getstack.com
 
-- Page profil stack.dev/@handle avec score d'adoption
+- Page profil getstack.com/@handle avec score d'adoption
 - Feed trending basique
 - Auth GitHub OAuth
 - API backend (Supabase Edge Functions)
@@ -595,10 +595,10 @@ Voici l'inventaire exhaustif de tous les vecteurs d'attaque identifiés. Chacun 
 | Handle spoofing                       | ÉLEVÉ    | `@0rphe0` (zéro au lieu de o) se fait passer pour `@orpheo`. L'utilisateur installe un setup malveillant.                                 | Vérification similarité de handle + badge Verified visible + warning si handle non vérifié                   |
 | Write partiel / corruption            | ÉLEVÉ    | `stack install stripe` écrit à mi-chemin dans `claude_desktop_config.json`. JSON invalide. Claude Desktop ne démarre plus.                | Transaction atomique + backup avant write + validation JSON + rollback automatique sur erreur                |
 | Élévation de privilèges               | ÉLEVÉ    | stack demande sudo pour installer des CLIs dans `/usr/local/bin`. Script malveillant profite de la session sudo.                          | Jamais de sudo implicite. Installation dans `~/.stack/bin/`. Ajout PATH sans sudo. Sudo explicite documenté. |
-| Télémétrie non consentie              | ÉLEVÉ    | stack envoie des données à stack.dev sans consentement. Un dev intercepte le trafic et publie sur X.                                      | Zero télémétrie par défaut. Opt-in explicite. Toutes les requêtes réseau documentées.                        |
+| Télémétrie non consentie              | ÉLEVÉ    | stack envoie des données à getstack.com sans consentement. Un dev intercepte le trafic et publie sur X.                                   | Zero télémétrie par défaut. Opt-in explicite. Toutes les requêtes réseau documentées.                        |
 | Path traversal                        | MOYEN    | Un package malveillant contient un nom comme `"../../../.ssh/authorized_keys"` dans sa config.                                            | Sanitisation stricte de tous les chemins. Whitelist des répertoires autorisés. Pas d'écriture hors scope.    |
-| Env var exfiltration accidentellement | MOYEN    | stack lit .env pour détecter le contexte et envoie accidentellement les valeurs à l'API.                                                  | Lecture locale uniquement. Aucune valeur de .env n'est jamais envoyée à stack.dev. Keys envoyées = zéro.     |
-| Man-in-the-middle                     | MOYEN    | Réseau compromis intercepte les téléchargements de packages et substitue du code malveillant.                                             | HTTPS only. Vérification SHA256 de chaque package. Certificate pinning pour stack.dev API.                   |
+| Env var exfiltration accidentellement | MOYEN    | stack lit .env pour détecter le contexte et envoie accidentellement les valeurs à l'API.                                                  | Lecture locale uniquement. Aucune valeur de .env n'est jamais envoyée à getstack.com. Keys envoyées = zéro.  |
+| Man-in-the-middle                     | MOYEN    | Réseau compromis intercepte les téléchargements de packages et substitue du code malveillant.                                             | HTTPS only. Vérification SHA256 de chaque package. Certificate pinning pour getstack.com API.                |
 
 ### 17.2 Les 10 Garanties Non Négociables — V1
 
@@ -755,7 +755,7 @@ function safePath(input: string): string {
 
 #### Garantie 9 — HTTPS + vérification d'intégrité
 
-Toutes les communications avec stack.dev et les registries npm sont en HTTPS. Chaque package est vérifié par son hash SHA256 avant installation.
+Toutes les communications avec getstack.com et les registries npm sont en HTTPS. Chaque package est vérifié par son hash SHA256 avant installation.
 
 ```javascript
 // Vérification intégrité avant installation
@@ -785,13 +785,13 @@ Le CLI est entièrement open source dès J1. Un SECURITY.md complet est présent
 ## Modèle de sécurité
 
 - Fichiers modifiés par stack (liste exhaustive)
-- Données envoyées à stack.dev (liste exhaustive)
+- Données envoyées à getstack.com (liste exhaustive)
 - Données jamais envoyées (liste exhaustive)
 - Mécanismes de backup et rollback
 
 ## Reporter une vulnérabilité
 
-security@stack.dev — Response dans 24h
+security@getstack.com — Response dans 24h
 PGP key: [clé publique]
 
 ## Bug bounty
@@ -807,16 +807,16 @@ Un CLI robuste ne crashe jamais silencieusement. Chaque erreur a un message clai
 
 #### 17.3.1 Codes d'erreur standardisés
 
-| Code      | Situation                                       | Message affiché                              | Action corrective                                               |
-| --------- | ----------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------- |
-| STACK_001 | JSON invalide dans `claude_desktop_config.json` | Invalid JSON in config. Rollback applied.    | Backup restauré auto. Chemin du backup affiché.                 |
-| STACK_002 | Package non trouvé dans le registry             | Tool "x" not found. Did you mean "y"?        | Suggestions de packages similaires.                             |
-| STACK_003 | Hash SHA256 ne correspond pas                   | Integrity check failed. Install aborted.     | Aucune modification effectuée. Reporter via security@stack.dev. |
-| STACK_004 | Réseau indisponible                             | Network error. Check your connection.        | Mode offline : liste les outils déjà installés.                 |
-| STACK_005 | Handle non trouvé                               | @handle not found on stack.dev.              | Suggestions de handles similaires.                              |
-| STACK_006 | Permissions insuffisantes                       | Cannot write to [path]. Check permissions.   | Commande exacte pour fixer les permissions.                     |
-| STACK_007 | Claude Desktop actif pendant install            | Claude Desktop is running. Restart required. | Option `--force` pour ignorer + warning clair.                  |
-| STACK_008 | Version incompatible                            | Tool requires Node 20+. Current: 18.         | Lien vers upgrade Node.                                         |
+| Code      | Situation                                       | Message affiché                              | Action corrective                                                  |
+| --------- | ----------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------ |
+| STACK_001 | JSON invalide dans `claude_desktop_config.json` | Invalid JSON in config. Rollback applied.    | Backup restauré auto. Chemin du backup affiché.                    |
+| STACK_002 | Package non trouvé dans le registry             | Tool "x" not found. Did you mean "y"?        | Suggestions de packages similaires.                                |
+| STACK_003 | Hash SHA256 ne correspond pas                   | Integrity check failed. Install aborted.     | Aucune modification effectuée. Reporter via security@getstack.com. |
+| STACK_004 | Réseau indisponible                             | Network error. Check your connection.        | Mode offline : liste les outils déjà installés.                    |
+| STACK_005 | Handle non trouvé                               | @handle not found on getstack.com.           | Suggestions de handles similaires.                                 |
+| STACK_006 | Permissions insuffisantes                       | Cannot write to [path]. Check permissions.   | Commande exacte pour fixer les permissions.                        |
+| STACK_007 | Claude Desktop actif pendant install            | Claude Desktop is running. Restart required. | Option `--force` pour ignorer + warning clair.                     |
+| STACK_008 | Version incompatible                            | Tool requires Node 20+. Current: 18.         | Lien vers upgrade Node.                                            |
 
 #### 17.3.2 Validation JSON stricte
 
@@ -903,7 +903,7 @@ function scanClaudeMd(content: string): ScanResult {
 }
 ```
 
-### 17.5 Sécurité du Registry stack.dev
+### 17.5 Sécurité du Registry getstack.com
 
 #### 17.5.1 Processus de vetting des packages
 
@@ -977,18 +977,18 @@ Aucun des items suivants ne peut être "en cours" le jour du lancement. Tous doi
 
 Ces tests doivent tous passer avant le lancement. Ils simulent exactement ce qu'un dev hostile va essayer dans les 48h post-lancement.
 
-| Test      | Scénario                                                              | Résultat attendu                                                             |
-| --------- | --------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| T-SEC-001 | `stack install` avec réseau coupé à mi-write                          | Rollback automatique. Fichier dans état original. Message d'erreur clair.    |
-| T-SEC-002 | `stack install` package avec hash SHA256 modifié                      | Install bloqué. Erreur STACK_003. Aucun fichier modifié.                     |
-| T-SEC-003 | `stack @handle` avec CLAUDE.md contenant "ignore all instructions"    | BLOCKED. Message rouge. Aucun fichier installé.                              |
-| T-SEC-004 | `stack install` avec path traversal `"../../../.ssh/authorized_keys"` | SecurityError. Path not in whitelist. Aucune écriture.                       |
-| T-SEC-005 | `stack install` avec `claude_desktop_config.json` déjà corrompu       | Détection avant modification. Warning. Option de repair proposée.            |
-| T-SEC-006 | Inspection trafic réseau Wireshark pendant `stack install`            | Uniquement HTTPS vers stack.dev et registry npm. Aucune valeur .env visible. |
-| T-SEC-007 | `stack @handle` avec handle similaire à un handle vérifié             | Warning affiché. "Similar to @orpheo. Are you sure?" Confirmation requise.   |
-| T-SEC-008 | `stack rollback` après install réussi                                 | Tous les fichiers restaurés exactement dans leur état pré-install.           |
-| T-SEC-009 | Installation sur machine sans Claude Desktop                          | Context detection: client not found. Demande quel client configurer.         |
-| T-SEC-010 | 100 installs simultanés depuis la même IP                             | Rate limiting déclenché après le seuil. Message d'erreur approprié.          |
+| Test      | Scénario                                                              | Résultat attendu                                                                |
+| --------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| T-SEC-001 | `stack install` avec réseau coupé à mi-write                          | Rollback automatique. Fichier dans état original. Message d'erreur clair.       |
+| T-SEC-002 | `stack install` package avec hash SHA256 modifié                      | Install bloqué. Erreur STACK_003. Aucun fichier modifié.                        |
+| T-SEC-003 | `stack @handle` avec CLAUDE.md contenant "ignore all instructions"    | BLOCKED. Message rouge. Aucun fichier installé.                                 |
+| T-SEC-004 | `stack install` avec path traversal `"../../../.ssh/authorized_keys"` | SecurityError. Path not in whitelist. Aucune écriture.                          |
+| T-SEC-005 | `stack install` avec `claude_desktop_config.json` déjà corrompu       | Détection avant modification. Warning. Option de repair proposée.               |
+| T-SEC-006 | Inspection trafic réseau Wireshark pendant `stack install`            | Uniquement HTTPS vers getstack.com et registry npm. Aucune valeur .env visible. |
+| T-SEC-007 | `stack @handle` avec handle similaire à un handle vérifié             | Warning affiché. "Similar to @orpheo. Are you sure?" Confirmation requise.      |
+| T-SEC-008 | `stack rollback` après install réussi                                 | Tous les fichiers restaurés exactement dans leur état pré-install.              |
+| T-SEC-009 | Installation sur machine sans Claude Desktop                          | Context detection: client not found. Demande quel client configurer.            |
+| T-SEC-010 | 100 installs simultanés depuis la même IP                             | Rate limiting déclenché après le seuil. Message d'erreur approprié.             |
 
 ### 17.8 Plan de Réponse aux Incidents
 

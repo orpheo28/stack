@@ -29,6 +29,6 @@ jobs:
       - run: pnpm build:cli
       - run: pnpm test:cli
 
-      - run: pnpm --filter stackdev publish --provenance --access public --no-git-checks
+      - run: pnpm --filter usedev publish --provenance --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

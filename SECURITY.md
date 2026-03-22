@@ -23,7 +23,7 @@ Stack modifies developer config files to install AI-native tools. Security is pr
 
 **No other files are ever modified.** All write paths are enforced by a compile-time whitelist (`src/security/whitelist.ts`). Any write attempt outside this list throws `STACK_009`.
 
-### Data sent to use.dev (exhaustive list)
+### Data sent to getstack.com (exhaustive list)
 
 | Endpoint                            | Data sent                                      | Purpose                     |
 | ----------------------------------- | ---------------------------------------------- | --------------------------- |
@@ -61,7 +61,7 @@ This is enforced by the type system — the `StackJson` schema used for API call
 
 ## Reporting a Vulnerability
 
-**Email**: security@use.dev
+**Email**: security@getstack.com
 **Response time**: Within 24 hours
 
 Please include:

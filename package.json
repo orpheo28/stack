@@ -16,13 +16,13 @@
     "format": "prettier --write \"**/*.{ts,tsx,mjs,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,mjs,json,md}\"",
     "clean": "turbo clean",
-    "dev:cli": "turbo dev --filter=stackdev",
+    "dev:cli": "turbo dev --filter=usedev",
     "dev:web": "turbo dev --filter=@stack/web",
-    "build:cli": "turbo build --filter=stackdev",
+    "build:cli": "turbo build --filter=usedev",
     "build:web": "turbo build --filter=@stack/web",
-    "test:cli": "turbo test --filter=stackdev",
+    "test:cli": "turbo test --filter=usedev",
     "test:web": "turbo test --filter=@stack/web",
-    "test:security": "turbo test:security --filter=stackdev",
+    "test:security": "turbo test:security --filter=usedev",
     "prepare": "husky"
   },
   "devDependencies": {
