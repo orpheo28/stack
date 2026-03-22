@@ -20,6 +20,21 @@ export async function POST(
 
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? null
 
+  // Rate limit: max 1 copy per IP per handle per hour
+  if (ip !== null) {
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString()
+    const { count } = await supabase
+      .from('copy_events')
+      .select('id', { count: 'exact', head: true })
+      .eq('handle_id', handleRow.id)
+      .eq('copier_ip', ip)
+      .gte('created_at', oneHourAgo)
+
+    if (count !== null && count > 0) {
+      return NextResponse.json({ ok: true, cached: true })
+    }
+  }
+
   // Insert copy event
   await supabase.from('copy_events').insert({ handle_id: handleRow.id, copier_ip: ip })
 

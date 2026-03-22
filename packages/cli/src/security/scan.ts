@@ -69,3 +69,71 @@ export function assertClaudeMdSafe(content: string): void {
     )
   }
 }
+
+// --- Handle similarity detection (T-SEC-007) ---
+
+// Confusable character map (visually similar chars)
+const CONFUSABLES: ReadonlyMap<string, string> = new Map([
+  ['0', 'o'],
+  ['1', 'l'],
+  ['l', 'l'],
+  ['i', 'l'],
+  ['5', 's'],
+  ['8', 'b'],
+  ['3', 'e'],
+  ['_', ''],
+  ['-', ''],
+])
+
+function normalizeHandle(handle: string): string {
+  const clean = handle.replace(/^@/, '').toLowerCase()
+  return Array.from(clean)
+    .map((c) => CONFUSABLES.get(c) ?? c)
+    .join('')
+}
+
+export function areHandlesSimilar(handleA: string, handleB: string): boolean {
+  const a = handleA.replace(/^@/, '').toLowerCase()
+  const b = handleB.replace(/^@/, '').toLowerCase()
+
+  // Exact match after lowercase
+  if (a === b) return false // same handle, not "similar"
+
+  // Confusable normalization match
+  if (normalizeHandle(a) === normalizeHandle(b)) return true
+
+  // Levenshtein distance ≤ 2
+  return levenshtein(a, b) <= 2
+}
+
+function levenshtein(a: string, b: string): number {
+  const m = a.length
+  const n = b.length
+  const dp: number[][] = Array.from({ length: m + 1 }, () => Array.from({ length: n + 1 }, () => 0))
+
+  for (let i = 0; i <= m; i++) {
+    const row = dp[i]
+    if (row) row[0] = i
+  }
+  for (let j = 0; j <= n; j++) {
+    const row = dp[0]
+    if (row) row[j] = j
+  }
+
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1
+      const prevRow = dp[i - 1]
+      const currRow = dp[i]
+      if (prevRow && currRow) {
+        currRow[j] = Math.min(
+          (prevRow[j] ?? 0) + 1,
+          (currRow[j - 1] ?? 0) + 1,
+          (prevRow[j - 1] ?? 0) + cost,
+        )
+      }
+    }
+  }
+
+  return dp[m]?.[n] ?? 0
+}

@@ -123,6 +123,9 @@ export async function writeCursorRules(
   options: ConfigWriteOptions,
   homeDir?: string,
 ): Promise<ConfigWriteResult> {
+  // Security scan BEFORE anything else (same as CLAUDE.md)
+  assertClaudeMdSafe(content)
+
   const filePath = join(cwd, '.cursorrules')
   const existing = await readExisting(filePath)
   const hadExisting = existing !== null

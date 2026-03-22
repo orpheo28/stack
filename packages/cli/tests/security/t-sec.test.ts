@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { atomicWrite } from '../../src/utils/atomic-write.js'
 import { createBackup, restoreBackup, rollbackLast } from '../../src/security/backup.js'
 import { assertPathAllowed, isPathAllowed } from '../../src/security/whitelist.js'
-import { assertClaudeMdSafe, scanClaudeMd } from '../../src/security/scan.js'
+import { assertClaudeMdSafe, scanClaudeMd, areHandlesSimilar } from '../../src/security/scan.js'
 import { computeHash, verifyFileIntegrity } from '../../src/security/verify.js'
 import { detectContext } from '../../src/detectors/context.js'
 import { isStackError } from '../../src/types/errors.js'
@@ -216,12 +216,24 @@ describe('T-SEC-006: No .env values in API calls', () => {
 
 // T-SEC-007 — Similar handle to verified handle → warning
 describe('T-SEC-007: Handle similarity detection', () => {
-  it('should detect similar characters (placeholder for future levenshtein check)', () => {
-    // Future implementation: compare "@0rphe0" vs "@orpheo"
-    // For now, we verify the API client properly strips @ from handles
-    const handle1 = '@orpheo'
-    const handle2 = '@0rphe0'
-    expect(handle1).not.toBe(handle2)
+  it('should detect confusable characters: @0rphe0 vs @orpheo', () => {
+    expect(areHandlesSimilar('@0rphe0', '@orpheo')).toBe(true)
+  })
+
+  it('should detect confusable: @str1pe vs @stripe', () => {
+    expect(areHandlesSimilar('@str1pe', '@stripe')).toBe(true)
+  })
+
+  it('should detect Levenshtein distance ≤ 2: @orpheoo vs @orpheo', () => {
+    expect(areHandlesSimilar('@orpheoo', '@orpheo')).toBe(true)
+  })
+
+  it('should NOT flag completely different handles', () => {
+    expect(areHandlesSimilar('@alice', '@bob')).toBe(false)
+  })
+
+  it('should NOT flag same handle as similar', () => {
+    expect(areHandlesSimilar('@orpheo', '@orpheo')).toBe(false)
   })
 })
 

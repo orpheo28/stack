@@ -10,6 +10,20 @@ import { createRollbackCommand } from './commands/rollback.js'
 import { createRemoveCommand } from './commands/remove.js'
 import { createLoginCommand, createLogoutCommand, createWhoamiCommand } from './commands/auth.js'
 
+const MINIMUM_NODE_MAJOR = 20
+
+function checkNodeVersion(): void {
+  const major = parseInt(process.versions.node.split('.')[0] ?? '0', 10)
+  if (major < MINIMUM_NODE_MAJOR) {
+    console.error(
+      `STACK_008: Node.js ${String(MINIMUM_NODE_MAJOR)}+ required (current: ${process.versions.node}). Please upgrade Node.js.`,
+    )
+    process.exit(1)
+  }
+}
+
+checkNodeVersion()
+
 const currentFilePath = fileURLToPath(import.meta.url)
 const currentDirPath = dirname(currentFilePath)
 

@@ -21,12 +21,23 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const payload = body as Record<string, unknown>
-  const handle =
+  const rawHandle =
     typeof payload['handle'] === 'string' ? payload['handle'].replace('@', '').toLowerCase() : null
 
-  if (handle === null || handle === '') {
+  if (rawHandle === null || rawHandle === '') {
     return NextResponse.json({ error: 'handle is required' }, { status: 400 })
   }
+
+  // Validate handle format: alphanumeric, hyphens, underscores only, 2-39 chars
+  const HANDLE_RE = /^[a-z0-9][a-z0-9_-]{1,38}$/
+  if (!HANDLE_RE.test(rawHandle)) {
+    return NextResponse.json(
+      { error: 'Handle must be 2-39 chars, alphanumeric/hyphens/underscores only' },
+      { status: 400 },
+    )
+  }
+
+  const handle = rawHandle
 
   const service = createServiceClient()
 
@@ -64,8 +75,10 @@ export async function POST(req: Request): Promise<Response> {
     return NextResponse.json({ error: 'Failed to publish' }, { status: 500 })
   }
 
+  const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://use.dev'
+
   return NextResponse.json({
-    url: `https://use.dev/@${handle}`,
+    url: `${appUrl}/@${handle}`,
     handle,
   })
 }

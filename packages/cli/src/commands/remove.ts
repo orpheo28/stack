@@ -1,9 +1,9 @@
 import { Command } from 'commander'
 import chalk from 'chalk'
-import { readFile, writeFile } from 'node:fs/promises'
+import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import { homedir } from 'node:os'
 import { detectContext } from '../detectors/context.js'
-import { createBackup } from '../security/backup.js'
 import { readStackJson } from '../utils/stack-json.js'
 import { atomicWrite } from '../utils/atomic-write.js'
 
@@ -18,12 +18,12 @@ async function removeMcpEntry(configPath: string, toolName: string): Promise<boo
 
     if (servers === undefined || !(toolName in servers)) return false
 
-    await createBackup(configPath)
-
     const filtered = Object.fromEntries(Object.entries(servers).filter(([key]) => key !== toolName))
     config['mcpServers'] = filtered
 
-    await writeFile(configPath, JSON.stringify(config, null, 2), 'utf-8')
+    await atomicWrite(configPath, JSON.stringify(config, null, 2), process.cwd(), {
+      homeDir: homedir(),
+    })
     return true
   } catch {
     return false

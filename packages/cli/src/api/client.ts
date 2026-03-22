@@ -117,6 +117,14 @@ export async function recordCopy(handle: string): Promise<void> {
   }
 }
 
+export async function recordInstall(toolName: string): Promise<void> {
+  try {
+    await apiFetch(`/tools/${encodeURIComponent(toolName)}/install`, { method: 'POST' })
+  } catch {
+    // Non-critical — don't fail the install if analytics fail
+  }
+}
+
 export async function searchTools(query: string): Promise<readonly ToolSearchResult[]> {
   const response = await apiFetch(`/search?q=${encodeURIComponent(query)}`)
 

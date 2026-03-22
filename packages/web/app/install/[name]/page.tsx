@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createServiceClient } from '@/lib/supabase/server'
 
@@ -8,9 +8,13 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { name } = await params
+  const title = `Install ${name} — use.dev`
+  const description = `Install ${name} in one command: npx stack install ${name}`
   return {
-    title: `Install ${name} — use.dev`,
-    description: `Install ${name} in one command: npx stack install ${name}`,
+    title,
+    description,
+    openGraph: { title, description, siteName: 'use.dev', type: 'website' },
+    twitter: { card: 'summary_large_image', title, description },
   }
 }
 
@@ -26,6 +30,11 @@ export const dynamic = 'force-dynamic'
 
 export default async function InstallPage({ params }: Props) {
   const { name } = await params
+
+  if (name !== name.toLowerCase()) {
+    redirect(`/install/${name.toLowerCase()}`)
+  }
+
   const supabase = createServiceClient()
 
   const result = await supabase.from('tools').select('*').eq('name', name.toLowerCase()).single()

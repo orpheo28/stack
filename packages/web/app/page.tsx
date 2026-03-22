@@ -6,6 +6,19 @@ export const metadata: Metadata = {
   title: 'use.dev — Universal installer for AI-native devs',
   description:
     "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
+  openGraph: {
+    title: 'use.dev — Universal installer for AI-native devs',
+    description:
+      "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
+    siteName: 'use.dev',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'use.dev — Universal installer for AI-native devs',
+    description:
+      "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
+  },
 }
 
 // Revalidate every 60s (ISR)

@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createServiceClient } from '@/lib/supabase/server'
 import type { Json } from '@/types/database'
@@ -19,9 +19,13 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params
+  const title = `@${handle} — use.dev`
+  const description = `Copy @${handle}'s AI-native dev setup in one command: npx stack @${handle}`
   return {
-    title: `@${handle} — use.dev`,
-    description: `Copy @${handle}'s AI-native dev setup in one command: npx stack @${handle}`,
+    title,
+    description,
+    openGraph: { title, description, siteName: 'use.dev', type: 'profile' },
+    twitter: { card: 'summary_large_image', title, description },
   }
 }
 
@@ -37,6 +41,11 @@ export const dynamic = 'force-dynamic'
 
 export default async function HandlePage({ params }: Props) {
   const { handle } = await params
+
+  if (handle !== handle.toLowerCase()) {
+    redirect(`/@${handle.toLowerCase()}`)
+  }
+
   const supabase = createServiceClient()
 
   const result = await supabase

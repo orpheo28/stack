@@ -8,7 +8,7 @@ import { writeEnvVars } from '../writers/env.js'
 import { writeSdkSetup } from '../writers/sdk.js'
 import { writeCliTool } from '../writers/cli-tool.js'
 import { writeClaudeMd, writeCursorRules } from '../writers/config.js'
-import { fetchHandleManifest, recordCopy } from '../api/client.js'
+import { fetchHandleManifest, recordCopy, recordInstall } from '../api/client.js'
 import { addToolToStackJson, readStackJson } from '../utils/stack-json.js'
 import { StackError } from '../types/errors.js'
 import type { ToolDefinition } from '../registry/tools.js'
@@ -282,9 +282,12 @@ export function createInstallCommand(): Command {
         const result = await installTool(tool, process.cwd())
         spinner.stop()
         console.log(formatResult(result))
+        void recordInstall(tool.name)
       } catch (error) {
         spinner.fail(`Failed to install ${tool.displayName}`)
-        throw error
+        if (error instanceof StackError) throw error
+        const message = error instanceof Error ? error.message : String(error)
+        throw new StackError('STACK_004', `Installation failed: ${message}`)
       }
     })
 }

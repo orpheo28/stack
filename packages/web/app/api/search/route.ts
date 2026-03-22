@@ -1,9 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 
+function sanitizeQuery(raw: string): string {
+  return raw.replace(/[^a-zA-Z0-9 _-]/g, '').slice(0, 100)
+}
+
 export async function GET(req: Request): Promise<Response> {
   const { searchParams } = new URL(req.url)
-  const q = searchParams.get('q')?.trim() ?? ''
+  const q = sanitizeQuery(searchParams.get('q')?.trim() ?? '')
 
   const supabase = createServiceClient()
 

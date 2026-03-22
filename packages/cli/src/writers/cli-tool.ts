@@ -1,6 +1,8 @@
-import { mkdir, writeFile, chmod } from 'node:fs/promises'
+import { mkdir, chmod, readFile, appendFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { homedir } from 'node:os'
+import { atomicWrite } from '../utils/atomic-write.js'
+import { assertPathAllowed } from '../security/whitelist.js'
 
 export interface CliToolResult {
   readonly binPath: string
@@ -9,6 +11,31 @@ export interface CliToolResult {
 
 function getStackBinDir(homeDir?: string): string {
   return join(homeDir ?? homedir(), '.stack', 'bin')
+}
+
+const PATH_EXPORT_LINE = 'export PATH="$HOME/.stack/bin:$PATH"'
+const PATH_MARKER = '# Added by stack CLI'
+
+async function ensurePathInShellRc(homeDir?: string): Promise<boolean> {
+  const home = homeDir ?? homedir()
+  const pathEnv = process.env['PATH'] ?? ''
+  const binDir = getStackBinDir(homeDir)
+
+  if (pathEnv.includes(binDir)) return true
+
+  // Find the shell rc file
+  const shell = process.env['SHELL'] ?? '/bin/zsh'
+  const rcFile = shell.includes('zsh') ? join(home, '.zshrc') : join(home, '.bashrc')
+
+  try {
+    const content = await readFile(rcFile, 'utf-8')
+    if (content.includes(PATH_EXPORT_LINE)) return true
+  } catch {
+    // File doesn't exist — will be created by appendFile
+  }
+
+  await appendFile(rcFile, `\n${PATH_MARKER}\n${PATH_EXPORT_LINE}\n`)
+  return false
 }
 
 export async function writeCliTool(
@@ -20,6 +47,10 @@ export async function writeCliTool(
   await mkdir(binDir, { recursive: true })
 
   const binPath = join(binDir, toolName)
+  const projectRoot = process.cwd()
+
+  // Whitelist check before writing
+  assertPathAllowed(binPath, projectRoot, homeDir ?? homedir())
 
   // Create a wrapper script that delegates to npx or the source
   let script: string
@@ -33,12 +64,14 @@ export async function writeCliTool(
     script = `#!/usr/bin/env bash\nexec npx -y ${source} "$@"\n`
   }
 
-  await writeFile(binPath, script, 'utf-8')
+  await atomicWrite(binPath, script, projectRoot, {
+    homeDir: homeDir ?? homedir(),
+    stackDir: join(homeDir ?? homedir(), '.stack'),
+  })
   await chmod(binPath, 0o755)
 
-  // Check if ~/.stack/bin is in PATH
-  const pathEnv = process.env['PATH'] ?? ''
-  const pathUpdated = pathEnv.includes(binDir)
+  // Ensure ~/.stack/bin is in PATH
+  const wasAlreadyInPath = await ensurePathInShellRc(homeDir)
 
-  return { binPath, pathUpdated }
+  return { binPath, pathUpdated: !wasAlreadyInPath }
 }
