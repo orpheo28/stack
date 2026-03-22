@@ -70,7 +70,7 @@ export default async function HomePage() {
         <header className="text-center mb-24">
           <div className="inline-flex items-center gap-2 rounded-full border border-zinc-800 bg-zinc-900/50 px-4 py-1.5 text-xs text-zinc-400 mb-8 backdrop-blur-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            36 tools available
+            42 tools available
           </div>
 
           <h1 className="text-6xl sm:text-7xl font-bold tracking-tight mb-6">
@@ -187,6 +187,9 @@ export default async function HomePage() {
         <footer className="mt-24 pt-8 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-600">
           <p>getstack.com</p>
           <div className="flex items-center gap-6">
+            <Link href="/trending" className="hover:text-zinc-400 transition-colors">
+              Trending
+            </Link>
             <Link href="/search" className="hover:text-zinc-400 transition-colors">
               Search
             </Link>

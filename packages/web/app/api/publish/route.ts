@@ -62,6 +62,27 @@ export async function POST(req: Request): Promise<Response> {
 
     const service = createServiceClient()
 
+    // Rate limit: max 10 publishes per user per day
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+    const { count: recentPublishes } = await service
+      .from('handles')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .gte('updated_at', oneDayAgo)
+
+    if (recentPublishes !== null && recentPublishes >= 10) {
+      log('warn', 'publish rate limited', {
+        path: '/api/publish',
+        method: 'POST',
+        status: 429,
+        user_id: user.id,
+      })
+      return NextResponse.json(
+        { error: 'Rate limit exceeded. Max 10 publishes per day.' },
+        { status: 429 },
+      )
+    }
+
     const { data: existing } = await service
       .from('handles')
       .select('id, user_id')

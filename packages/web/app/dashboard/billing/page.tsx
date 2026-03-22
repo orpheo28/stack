@@ -2,6 +2,43 @@ import { redirect } from 'next/navigation'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { stripe, STRIPE_PRO_PRICE_ID, PLANS } from '@/lib/stripe'
 
+async function manageSubscriptionAction(): Promise<never> {
+  'use server'
+
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (user === null) redirect('/auth/cli')
+
+  const service = createServiceClient()
+  const { data: handle } = await service
+    .from('handles')
+    .select('stripe_customer_id')
+    .eq('user_id', user.id)
+    .single()
+
+  const customerId = handle?.stripe_customer_id as string | null
+  if (customerId === null || customerId === '') {
+    redirect('/dashboard/billing?error=no_subscription')
+  }
+
+  const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://getstack.com'
+  let portalUrl: string
+  try {
+    const session = await stripe.billingPortal.sessions.create({
+      customer: customerId,
+      return_url: `${appUrl}/dashboard/billing`,
+    })
+    portalUrl = session.url
+  } catch {
+    portalUrl = '/dashboard/billing?error=portal_failed'
+  }
+
+  redirect(portalUrl)
+}
+
 async function createCheckoutAction(formData: FormData): Promise<never> {
   'use server'
 
@@ -186,16 +223,17 @@ export default async function BillingPage({
       ) : isPro ? (
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-5">
           <p className="text-sm text-zinc-300 font-medium mb-1">You&apos;re on Pro</p>
-          <p className="text-xs text-zinc-500">
-            To manage or cancel your subscription, contact{' '}
-            <a
-              href="mailto:support@getstack.com"
-              className="text-zinc-400 hover:text-zinc-200 underline"
-            >
-              support@getstack.com
-            </a>
-            .
+          <p className="text-xs text-zinc-500 mb-3">
+            Manage your subscription, update payment method, or cancel anytime.
           </p>
+          <form action={manageSubscriptionAction}>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-zinc-800 text-zinc-200 rounded text-sm font-medium hover:bg-zinc-700 transition-colors border border-zinc-700"
+            >
+              Manage subscription
+            </button>
+          </form>
         </div>
       ) : (
         <form action={createCheckoutAction}>
