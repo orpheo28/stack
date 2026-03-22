@@ -32,6 +32,13 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['**/dist/**', '**/.next/**', '**/node_modules/**', '**/*.config.*', '**/*.mjs'],
+    ignores: [
+      '**/dist/**',
+      '**/.next/**',
+      '**/node_modules/**',
+      '**/*.config.*',
+      '**/*.mjs',
+      'packages/web/**',
+    ],
   },
 )
