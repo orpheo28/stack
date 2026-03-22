@@ -6,33 +6,50 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: '14.4'
   }
-  graphql_public: {
-    Tables: {
-      [_ in never]: never
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      graphql: {
-        Args: {
-          extensions?: Json
-          operationName?: string
-          query?: string
-          variables?: Json
-        }
-        Returns: Json
-      }
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
   public: {
     Tables: {
+      cli_sessions: {
+        Row: {
+          access_token: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          port: number
+          refresh_token: string | null
+          state: string
+          token: string
+          token_expires_at: string | null
+          used: boolean
+          user_id: string
+        }
+        Insert: {
+          access_token?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          port: number
+          refresh_token?: string | null
+          state: string
+          token: string
+          token_expires_at?: string | null
+          used?: boolean
+          user_id: string
+        }
+        Update: {
+          access_token?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          port?: number
+          refresh_token?: string | null
+          state?: string
+          token?: string
+          token_expires_at?: string | null
+          used?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       copy_events: {
         Row: {
           copier_ip: string | null
@@ -78,6 +95,8 @@ export type Database = {
           id: string
           location: string | null
           percentile: number | null
+          stripe_customer_id: string | null
+          subscription_status: string
           updated_at: string
           use_json: Json | null
           user_id: string | null
@@ -97,6 +116,8 @@ export type Database = {
           id?: string
           location?: string | null
           percentile?: number | null
+          stripe_customer_id?: string | null
+          subscription_status?: string
           updated_at?: string
           use_json?: Json | null
           user_id?: string | null
@@ -116,6 +137,8 @@ export type Database = {
           id?: string
           location?: string | null
           percentile?: number | null
+          stripe_customer_id?: string | null
+          subscription_status?: string
           updated_at?: string
           use_json?: Json | null
           user_id?: string | null
@@ -127,18 +150,21 @@ export type Database = {
           created_at: string
           handle_id: string | null
           id: string
+          installer_ip: string | null
           tool_id: string
         }
         Insert: {
           created_at?: string
           handle_id?: string | null
           id?: string
+          installer_ip?: string | null
           tool_id: string
         }
         Update: {
           created_at?: string
           handle_id?: string | null
           id?: string
+          installer_ip?: string | null
           tool_id?: string
         }
         Relationships: [
@@ -345,9 +371,6 @@ export type CompositeTypes<
     : never
 
 export const Constants = {
-  graphql_public: {
-    Enums: {},
-  },
   public: {
     Enums: {},
   },

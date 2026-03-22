@@ -1,6 +1,7 @@
 import { Command } from 'commander'
 import chalk from 'chalk'
-import { readFile } from 'node:fs/promises'
+import { readFile, unlink } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { homedir } from 'node:os'
 import { detectContext } from '../detectors/context.js'
@@ -58,6 +59,14 @@ export function createRemoveCommand(): Command {
         const updated = { ...manifest, tools }
         await atomicWrite(join(cwd, 'stack.json'), JSON.stringify(updated, null, 2) + '\n', cwd)
         console.log(chalk.green(`  ✓ Removed from stack.json`))
+        removed = true
+      }
+
+      // Remove CLI binary if it exists
+      const binPath = join(homedir(), '.stack', 'bin', name)
+      if (existsSync(binPath)) {
+        await unlink(binPath)
+        console.log(chalk.green(`  ✓ Removed binary → ${chalk.dim(binPath)}`))
         removed = true
       }
 

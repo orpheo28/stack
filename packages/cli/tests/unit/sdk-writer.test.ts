@@ -64,6 +64,6 @@ describe('writeSdkSetup', () => {
   it('should reject invalid package names (command injection protection)', async () => {
     await expect(
       writeSdkSetup('evil', template, projectRoot, 'pkg; rm -rf /', homeDir),
-    ).rejects.toThrow('Invalid package name')
+    ).rejects.toThrow('STACK_002')
   })
 })

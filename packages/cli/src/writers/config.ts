@@ -152,3 +152,39 @@ export async function writeCursorRules(
 
   return { filePath, hadExisting, diff, skipped: false }
 }
+
+export async function writeWindsurfrules(
+  content: string,
+  cwd: string,
+  projectRoot: string,
+  options: ConfigWriteOptions,
+  homeDir?: string,
+): Promise<ConfigWriteResult> {
+  assertClaudeMdSafe(content)
+
+  const filePath = join(cwd, '.windsurfrules')
+  const existing = await readExisting(filePath)
+  const hadExisting = existing !== null
+  const diff = hadExisting ? computeSimpleDiff(existing, content) : []
+
+  if (options.interactive && hadExisting && diff.length > 0) {
+    displayDiff(diff, '.windsurfrules')
+    const confirmed = await confirmApply('.windsurfrules')
+    if (!confirmed) {
+      return { filePath, hadExisting, diff, skipped: true }
+    }
+  } else if (options.interactive && !hadExisting) {
+    console.log(chalk.cyan(`\nNew .windsurfrules (${content.split('\n').length.toString()} lines)`))
+    const confirmed = await confirmApply('.windsurfrules')
+    if (!confirmed) {
+      return { filePath, hadExisting, diff, skipped: true }
+    }
+  }
+
+  await atomicWrite(filePath, content, projectRoot, {
+    homeDir,
+    stackDir: homeDir !== undefined ? join(homeDir, '.stack') : undefined,
+  })
+
+  return { filePath, hadExisting, diff, skipped: false }
+}

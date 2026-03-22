@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { atomicWrite } from '../utils/atomic-write.js'
+import { StackError } from '../types/errors.js'
 
 // --- Types ---
 
@@ -60,6 +61,18 @@ export async function writeEnvVars(
   await atomicWrite(targetPath, content, projectRoot, {
     homeDir,
     stackDir: homeDir !== undefined ? join(homeDir, '.stack') : undefined,
+    validate: (c) => {
+      for (const line of c.split('\n')) {
+        const trimmed = line.trim()
+        if (trimmed === '' || trimmed.startsWith('#')) continue
+        if (!trimmed.includes('=')) {
+          throw new StackError(
+            'STACK_001',
+            `Invalid env line: "${trimmed}". Expected KEY=value format`,
+          )
+        }
+      }
+    },
   })
 
   return targetPath

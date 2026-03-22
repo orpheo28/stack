@@ -20,7 +20,8 @@
     "test:security": "vitest run tests/security/ --passWithNoTests",
     "lint": "eslint src/",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf dist"
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm build && pnpm test"
   },
   "dependencies": {
     "chalk": "5.6.2",

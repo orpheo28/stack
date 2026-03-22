@@ -8,22 +8,24 @@ export function createSearchCommand(): Command {
     .argument('<query>', 'Search query')
     .description('Search for tools in the registry')
     .action(async (query: string) => {
-      // Search local registry first
-      const local = findSimilarTools(query)
-      if (local.length > 0) {
-        console.log(chalk.cyan('\nLocal registry matches:'))
-        for (const tool of local) {
+      // Search local + remote registry
+      const matches = await findSimilarTools(query)
+      if (matches.length > 0) {
+        console.log(chalk.cyan('\nRegistry matches:'))
+        for (const tool of matches) {
           console.log(`  ${chalk.bold(tool.name)} — ${tool.displayName} (${tool.type})`)
           console.log(`    ${chalk.dim(`stack install ${tool.name}`)}`)
         }
       }
 
-      // Search remote registry
+      // Also search the API for tools not in cache
       try {
         const remote = await searchTools(query)
-        if (remote.length > 0) {
-          console.log(chalk.cyan('\nRemote results:'))
-          for (const tool of remote) {
+        const matchNames = new Set(matches.map((m) => m.name))
+        const extra = remote.filter((t) => !matchNames.has(t.name))
+        if (extra.length > 0) {
+          console.log(chalk.cyan('\nAdditional results:'))
+          for (const tool of extra) {
             console.log(`  ${chalk.bold(tool.name)} — ${tool.description}`)
           }
         }
@@ -31,7 +33,7 @@ export function createSearchCommand(): Command {
         // Remote search is non-critical
       }
 
-      if (local.length === 0) {
+      if (matches.length === 0) {
         console.log(chalk.yellow(`No tools found for "${query}"`))
       }
     })

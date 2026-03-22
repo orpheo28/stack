@@ -332,6 +332,161 @@ describe('detectContext — Tier 3: zed', () => {
   })
 })
 
+describe('detectContext — Tier 2: copilot', () => {
+  let tmpDir: string
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'stack-test-'))
+  })
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true })
+  })
+
+  it('should detect copilot when .github/copilot-instructions.md exists', async () => {
+    await createFile(join(tmpDir, '.github', 'copilot-instructions.md'), '# Instructions')
+    const homeDir = join(tmpDir, 'home')
+    await mkdir(homeDir, { recursive: true })
+
+    const ctx = await detectContext(tmpDir, homeDir)
+    const client = findClient(ctx.clients, 'copilot')
+    expect(client).toBeDefined()
+    expect(client?.tier).toBe(2)
+    expect(client?.certainty).toBe('confirmed')
+  })
+
+  it('should walk up parents for copilot', async () => {
+    await createFile(join(tmpDir, '.github', 'copilot-instructions.md'), '# Instructions')
+    const deepDir = join(tmpDir, 'src', 'lib')
+    await mkdir(deepDir, { recursive: true })
+    const homeDir = join(tmpDir, 'home')
+    await mkdir(homeDir, { recursive: true })
+
+    const ctx = await detectContext(deepDir, homeDir)
+    const client = findClient(ctx.clients, 'copilot')
+    expect(client).toBeDefined()
+  })
+})
+
+describe('detectContext — Tier 2: aider', () => {
+  let tmpDir: string
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'stack-test-'))
+  })
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true })
+  })
+
+  it('should detect aider when .aider.conf.yml exists', async () => {
+    await createFile(join(tmpDir, '.aider.conf.yml'), 'model: gpt-4')
+    const homeDir = join(tmpDir, 'home')
+    await mkdir(homeDir, { recursive: true })
+
+    const ctx = await detectContext(tmpDir, homeDir)
+    const client = findClient(ctx.clients, 'aider')
+    expect(client).toBeDefined()
+    expect(client?.tier).toBe(2)
+    expect(client?.certainty).toBe('confirmed')
+  })
+})
+
+describe('detectContext — Tier 2: goose', () => {
+  let tmpDir: string
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'stack-test-'))
+  })
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true })
+  })
+
+  it('should detect goose via ~/.config/goose/config.yaml', async () => {
+    const homeDir = join(tmpDir, 'home')
+    await createFile(join(homeDir, '.config', 'goose', 'config.yaml'), 'provider: openai')
+
+    const ctx = await detectContext(tmpDir, homeDir)
+    const client = findClient(ctx.clients, 'goose')
+    expect(client).toBeDefined()
+    expect(client?.tier).toBe(2)
+    expect(client?.certainty).toBe('confirmed')
+  })
+})
+
+describe('detectContext — Tier 3: cody', () => {
+  let tmpDir: string
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'stack-test-'))
+  })
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true })
+  })
+
+  it('should detect cody when .vscode/cody.json exists', async () => {
+    await createFile(join(tmpDir, '.vscode', 'cody.json'), '{}')
+    const homeDir = join(tmpDir, 'home')
+    await mkdir(homeDir, { recursive: true })
+
+    const ctx = await detectContext(tmpDir, homeDir)
+    const client = findClient(ctx.clients, 'cody')
+    expect(client).toBeDefined()
+    expect(client?.tier).toBe(3)
+    expect(client?.certainty).toBe('probable')
+  })
+})
+
+describe('detectContext — Tier 3: void', () => {
+  let tmpDir: string
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'stack-test-'))
+  })
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true })
+  })
+
+  it('should detect void when .void/rules/global.md exists', async () => {
+    await createFile(join(tmpDir, '.void', 'rules', 'global.md'), '# Rules')
+    const homeDir = join(tmpDir, 'home')
+    await mkdir(homeDir, { recursive: true })
+
+    const ctx = await detectContext(tmpDir, homeDir)
+    const client = findClient(ctx.clients, 'void')
+    expect(client).toBeDefined()
+    expect(client?.tier).toBe(3)
+    expect(client?.certainty).toBe('probable')
+  })
+})
+
+describe('detectContext — Tier 3: trae', () => {
+  let tmpDir: string
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'stack-test-'))
+  })
+
+  afterEach(async () => {
+    await rm(tmpDir, { recursive: true, force: true })
+  })
+
+  it('should detect trae when .trae/mcp.json exists', async () => {
+    await createFile(join(tmpDir, '.trae', 'mcp.json'), '{}')
+    const homeDir = join(tmpDir, 'home')
+    await mkdir(homeDir, { recursive: true })
+
+    const ctx = await detectContext(tmpDir, homeDir)
+    const client = findClient(ctx.clients, 'trae')
+    expect(client).toBeDefined()
+    expect(client?.tier).toBe(3)
+    expect(client?.certainty).toBe('probable')
+  })
+})
+
 describe('detectContext — multi-client detection', () => {
   let tmpDir: string
 

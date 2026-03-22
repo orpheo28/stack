@@ -1,6 +1,7 @@
 import { readFile, mkdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import { atomicWrite } from '../utils/atomic-write.js'
+import { StackError } from '../types/errors.js'
 import type { DetectedClient, ClientName } from '../detectors/context.js'
 
 // --- Types ---
@@ -14,12 +15,18 @@ export interface McpServerConfig {
 export interface WriteResult {
   readonly client: ClientName
   readonly configPath: string
-  readonly action: 'added' | 'updated' | 'skipped'
+  readonly action: 'added' | 'updated' | 'skipped' | 'would-add' | 'would-update'
 }
 
 // --- Helpers ---
 
-const MCP_CLIENTS: ReadonlySet<ClientName> = new Set(['claude-desktop', 'cursor', 'vscode'])
+const MCP_CLIENTS: ReadonlySet<ClientName> = new Set([
+  'claude-desktop',
+  'cursor',
+  'vscode',
+  'windsurf',
+  'trae',
+])
 
 interface McpConfigFile {
   mcpServers: Record<string, McpServerConfig>
@@ -77,7 +84,15 @@ export async function writeMcpConfig(
       homeDir,
       stackDir: homeDir !== undefined ? join(homeDir, '.stack') : undefined,
       validate: (c) => {
-        JSON.parse(c)
+        try {
+          JSON.parse(c)
+        } catch (err) {
+          throw new StackError(
+            'STACK_001',
+            `MCP config for ${client.name} is not valid JSON. Check ${client.configPath}`,
+            err instanceof Error ? err : undefined,
+          )
+        }
       },
     })
 

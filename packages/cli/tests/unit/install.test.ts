@@ -4,7 +4,7 @@ import { existsSync, mkdtempSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { installTool } from '../../src/commands/install.js'
-import { findTool } from '../../src/registry/tools.js'
+import { findToolLocal } from '../../src/registry/tools.js'
 
 describe('installTool', () => {
   let tmpDir: string
@@ -30,7 +30,7 @@ describe('installTool', () => {
     await mkdir(join(cursorPath, '..'), { recursive: true })
     await writeFile(cursorPath, '{}', 'utf-8')
 
-    const tool = findTool('stripe')
+    const tool = findToolLocal('stripe')
     expect(tool).toBeDefined()
 
     const result = await installTool(tool!, projectRoot, { homeDir, skipNpmInstall: true })
@@ -57,7 +57,7 @@ describe('installTool', () => {
     await mkdir(join(cursorPath, '..'), { recursive: true })
     await writeFile(cursorPath, '{}', 'utf-8')
 
-    const tool = findTool('supabase')
+    const tool = findToolLocal('supabase')
     expect(tool).toBeDefined()
 
     const result = await installTool(tool!, projectRoot, { homeDir, skipNpmInstall: true })
@@ -70,7 +70,7 @@ describe('installTool', () => {
   })
 
   it('should install anthropic SDK without MCP', async () => {
-    const tool = findTool('anthropic')
+    const tool = findToolLocal('anthropic')
     expect(tool).toBeDefined()
 
     const result = await installTool(tool!, projectRoot, { homeDir, skipNpmInstall: true })
@@ -87,7 +87,7 @@ describe('installTool', () => {
     await mkdir(join(cursorPath, '..'), { recursive: true })
     await writeFile(cursorPath, '{}', 'utf-8')
 
-    const tool = findTool('cloudflare')
+    const tool = findToolLocal('cloudflare')
     expect(tool).toBeDefined()
 
     const result = await installTool(tool!, projectRoot, { homeDir, skipNpmInstall: true })
@@ -97,7 +97,7 @@ describe('installTool', () => {
   })
 
   it('should return duration in milliseconds', async () => {
-    const tool = findTool('cloudflare')
+    const tool = findToolLocal('cloudflare')
     expect(tool).toBeDefined()
 
     const cursorPath = join(projectRoot, '.cursor', 'mcp.json')
@@ -119,7 +119,7 @@ describe('installTool', () => {
     await mkdir(join(vscodePath, '..'), { recursive: true })
     await writeFile(vscodePath, '{}', 'utf-8')
 
-    const tool = findTool('stripe')
+    const tool = findToolLocal('stripe')
     expect(tool).toBeDefined()
 
     const result = await installTool(tool!, projectRoot, { homeDir, skipNpmInstall: true })

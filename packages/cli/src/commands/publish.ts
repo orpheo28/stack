@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import ora from 'ora'
 import { publishSetup } from '../api/client.js'
 import { readStackJson } from '../utils/stack-json.js'
+import { readToken } from './auth.js'
 
 export function createPublishCommand(): Command {
   return new Command('publish').description('Publish your setup to use.dev').action(async () => {
@@ -14,8 +15,10 @@ export function createPublishCommand(): Command {
       return
     }
 
-    const token = process.env['STACK_AUTH_TOKEN']
-    if (token === undefined || token === '') {
+    // STACK_AUTH_TOKEN env var takes precedence (CI/CD usage),
+    // otherwise use the stored OAuth token from `stack login`
+    const token = process.env['STACK_AUTH_TOKEN'] ?? (await readToken())
+    if (token === null || token === '') {
       console.log(chalk.yellow('Authentication required. Run "stack login" first.'))
       return
     }

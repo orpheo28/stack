@@ -76,7 +76,6 @@ export function assertClaudeMdSafe(content: string): void {
 const CONFUSABLES: ReadonlyMap<string, string> = new Map([
   ['0', 'o'],
   ['1', 'l'],
-  ['l', 'l'],
   ['i', 'l'],
   ['5', 's'],
   ['8', 'b'],

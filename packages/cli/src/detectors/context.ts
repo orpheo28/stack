@@ -12,9 +12,15 @@ export type ClientName =
   | 'claude-code'
   | 'codex'
   | 'opencode'
+  | 'copilot'
+  | 'aider'
+  | 'goose'
   | 'openclaw'
   | 'continue'
   | 'zed'
+  | 'cody'
+  | 'void'
+  | 'trae'
 
 export type ClientTier = 1 | 2 | 3
 export type Certainty = 'confirmed' | 'probable'
@@ -43,6 +49,11 @@ async function fileExists(filePath: string): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+export function getWindsurfMcpConfigPath(homeDir?: string): string {
+  const home = homeDir ?? homedir()
+  return join(home, '.codeium', 'windsurf', 'mcp_config.json')
 }
 
 export function getClaudeDesktopConfigPath(homeDir?: string): string {
@@ -133,7 +144,17 @@ function buildClientChecks(cwd: string, home: string): readonly ClientCheck[] {
       name: 'windsurf',
       tier: 1,
       certainty: 'confirmed',
-      detect: async (): Promise<string | null> => walkUpForFile(cwd, '.windsurfrules', home),
+      detect: async (): Promise<string | null> => {
+        // Windsurf MCP config — ~/.codeium/windsurf/mcp_config.json
+        // Only return the JSON MCP config path (never .windsurfrules which is a rules file)
+        const configPath = getWindsurfMcpConfigPath(home)
+        if (await fileExists(configPath)) return configPath
+        // If .windsurfrules exists, windsurf is present but MCP config doesn't exist yet
+        // Still return the MCP config path so it gets created correctly
+        const rulesPath = await walkUpForFile(cwd, '.windsurfrules', home)
+        if (rulesPath !== null) return configPath
+        return null
+      },
     },
 
     // Tier 2 — Coding agent CLIs
@@ -159,6 +180,29 @@ function buildClientChecks(cwd: string, home: string): readonly ClientCheck[] {
         const configPath = join(cwd, '.opencode', 'config.json')
         if (await fileExists(configPath)) return configPath
         return null
+      },
+    },
+    {
+      name: 'copilot',
+      tier: 2,
+      certainty: 'confirmed',
+      detect: async (): Promise<string | null> =>
+        walkUpForFile(cwd, join('.github', 'copilot-instructions.md'), home),
+    },
+    {
+      name: 'aider',
+      tier: 2,
+      certainty: 'confirmed',
+      detect: async (): Promise<string | null> => walkUpForFile(cwd, '.aider.conf.yml', home),
+    },
+    {
+      name: 'goose',
+      tier: 2,
+      certainty: 'confirmed',
+      detect: async (): Promise<string | null> => {
+        // Goose stores config in ~/.config/goose/config.yaml (home-based)
+        const configPath = join(home, '.config', 'goose', 'config.yaml')
+        return (await fileExists(configPath)) ? configPath : null
       },
     },
 
@@ -187,6 +231,27 @@ function buildClientChecks(cwd: string, home: string): readonly ClientCheck[] {
         const configPath = join(home, '.config', 'zed', 'settings.json')
         return (await fileExists(configPath)) ? configPath : null
       },
+    },
+    {
+      name: 'cody',
+      tier: 3,
+      certainty: 'probable',
+      detect: async (): Promise<string | null> =>
+        walkUpForFile(cwd, join('.vscode', 'cody.json'), home),
+    },
+    {
+      name: 'void',
+      tier: 3,
+      certainty: 'probable',
+      detect: async (): Promise<string | null> =>
+        walkUpForFile(cwd, join('.void', 'rules', 'global.md'), home),
+    },
+    {
+      name: 'trae',
+      tier: 3,
+      certainty: 'probable',
+      detect: async (): Promise<string | null> =>
+        walkUpForFile(cwd, join('.trae', 'mcp.json'), home),
     },
   ]
 }

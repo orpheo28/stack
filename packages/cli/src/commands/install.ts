@@ -1,16 +1,22 @@
 import { Command } from 'commander'
 import chalk from 'chalk'
 import ora from 'ora'
+import { existsSync } from 'node:fs'
+import { mkdir, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
+import { homedir } from 'node:os'
 import { detectContext } from '../detectors/context.js'
-import { findTool, findSimilarTools } from '../registry/tools.js'
+import { findTool, findSimilarTools, RESERVED_HANDLES } from '../registry/tools.js'
 import { writeMcpConfig } from '../writers/mcp.js'
 import { writeEnvVars } from '../writers/env.js'
 import { writeSdkSetup } from '../writers/sdk.js'
 import { writeCliTool } from '../writers/cli-tool.js'
-import { writeClaudeMd, writeCursorRules } from '../writers/config.js'
+import { writeClaudeMd, writeCursorRules, writeWindsurfrules } from '../writers/config.js'
 import { fetchHandleManifest, recordCopy, recordInstall } from '../api/client.js'
 import { addToolToStackJson, readStackJson } from '../utils/stack-json.js'
 import { StackError } from '../types/errors.js'
+import { areHandlesSimilar } from '../security/scan.js'
+import { computeHash } from '../security/verify.js'
 import type { ToolDefinition } from '../registry/tools.js'
 import type { WriteResult } from '../writers/mcp.js'
 
@@ -24,6 +30,70 @@ export interface InstallResult {
   readonly sdkFilePath: string | null
   readonly cliBinPath: string | null
   readonly durationMs: number
+  readonly missingEnvHint?: boolean
+}
+
+// --- First-run detection (Guarantee 3) ---
+
+function getInitMarkerPath(homeDir?: string): string {
+  return join(homeDir ?? homedir(), '.stack', '.initialized')
+}
+
+function isFirstRun(homeDir?: string): boolean {
+  return !existsSync(getInitMarkerPath(homeDir))
+}
+
+async function markInitialized(homeDir?: string): Promise<void> {
+  const markerPath = getInitMarkerPath(homeDir)
+  await mkdir(join(markerPath, '..'), { recursive: true })
+  await writeFile(markerPath, new Date().toISOString(), 'utf-8')
+}
+
+async function showPreview(tool: ToolDefinition, cwd: string, homeDir?: string): Promise<boolean> {
+  const ctx = await detectContext(cwd, homeDir)
+
+  console.log(chalk.yellow('\n⚠️  First time using stack on this machine.'))
+  console.log(chalk.yellow('Running in preview mode. Nothing will be modified.\n'))
+
+  console.log(`Would install ${chalk.cyan(tool.displayName)} and configure:`)
+
+  if (tool.mcpConfig !== undefined && ctx.clients.length > 0) {
+    for (const client of ctx.clients) {
+      console.log(chalk.dim(`  MODIFY ${client.configPath}`))
+      console.log(chalk.green(`    + Add ${tool.name} MCP server entry`))
+    }
+  }
+
+  if (tool.envVars !== undefined && tool.envVars.length > 0) {
+    const envFile = ctx.envFilePath ?? '.env'
+    console.log(chalk.dim(`  CREATE ${envFile}`))
+    for (const v of tool.envVars) {
+      console.log(chalk.green(`    + ${v.key}=${v.placeholder}`))
+    }
+  }
+
+  if (tool.sdkTemplate !== undefined && ctx.projectType === 'node') {
+    console.log(chalk.dim(`  CREATE src/lib/${tool.name}.ts`))
+    console.log(chalk.green(`    + TypeScript client`))
+  }
+
+  if (tool.type === 'cli') {
+    console.log(chalk.dim(`  CREATE ~/.stack/bin/${tool.name}`))
+    console.log(chalk.green(`    + CLI wrapper script`))
+  }
+
+  console.log(chalk.dim(`\nBackup will be created at: ~/.stack/backups/`))
+
+  const { default: inquirer } = await import('inquirer')
+  const { proceed } = await inquirer.prompt<{ proceed: boolean }>([
+    { type: 'confirm', name: 'proceed', message: 'Proceed?', default: false },
+  ])
+
+  if (proceed) {
+    await markInitialized(homeDir)
+  }
+
+  return proceed
 }
 
 // --- Core install logic ---
@@ -31,6 +101,7 @@ export interface InstallResult {
 export interface InstallOptions {
   readonly homeDir?: string
   readonly skipNpmInstall?: boolean
+  readonly dryRun?: boolean
 }
 
 export async function installTool(
@@ -42,7 +113,45 @@ export async function installTool(
     typeof homeDirOrOptions === 'string' ? { homeDir: homeDirOrOptions } : (homeDirOrOptions ?? {})
   const homeDir = options.homeDir
   const start = Date.now()
+
+  // Guarantee 5+9: SHA256 integrity verification of the tool definition
+  if (tool.hashSha256 !== undefined) {
+    const definition = JSON.stringify({
+      name: tool.name,
+      source: tool.source,
+      mcpConfig: tool.mcpConfig,
+      envVars: tool.envVars?.map((v) => v.key),
+      sdkPackage: tool.sdkPackage,
+    })
+    const actualHash = computeHash(Buffer.from(definition, 'utf-8'))
+    if (actualHash !== tool.hashSha256) {
+      throw new StackError(
+        'STACK_003',
+        `Integrity check failed for ${tool.name}. Registry definition may have been tampered with. Expected: ${tool.hashSha256}, got: ${actualHash}`,
+      )
+    }
+  }
+
   const ctx = await detectContext(cwd, homeDir)
+
+  // Dry run: return what would happen without modifying anything
+  if (options.dryRun === true) {
+    return {
+      toolName: tool.name,
+      displayName: tool.displayName,
+      mcpResults: ctx.clients
+        .filter(() => tool.mcpConfig !== undefined)
+        .map((c) => ({ client: c.name, configPath: c.configPath, action: 'would-add' as const })),
+      envFilePath:
+        tool.envVars !== undefined && tool.envVars.length > 0 ? (ctx.envFilePath ?? '.env') : null,
+      sdkFilePath:
+        tool.sdkTemplate !== undefined && ctx.projectType === 'node'
+          ? `src/lib/${tool.name}.ts`
+          : null,
+      cliBinPath: tool.type === 'cli' ? `~/.stack/bin/${tool.name}` : null,
+      durationMs: Date.now() - start,
+    }
+  }
 
   const mcpResults: WriteResult[] = []
   let envFilePath: string | null = null
@@ -79,6 +188,15 @@ export async function installTool(
     cliBinPath = cliResult.binPath
   }
 
+  // 4b. Warn about unsupported artifact types
+  if (tool.type === 'api' || tool.type === 'config') {
+    const hasEnv = tool.envVars !== undefined && tool.envVars.length > 0
+    console.warn(
+      `[STACK_002] Type '${tool.type}' is not yet fully supported.` +
+        (hasEnv ? ' Only environment variables were configured.' : ' No writers were invoked.'),
+    )
+  }
+
   // 5. Update stack.json
   await addToolToStackJson(
     cwd,
@@ -93,6 +211,12 @@ export async function installTool(
 
   const durationMs = Date.now() - start
 
+  // Flag when a tool was installed from remote registry without env config
+  const missingEnvHint =
+    tool.mcpConfig !== undefined &&
+    (tool.envVars === undefined || tool.envVars.length === 0) &&
+    mcpResults.length > 0
+
   return {
     toolName: tool.name,
     displayName: tool.displayName,
@@ -101,6 +225,7 @@ export async function installTool(
     sdkFilePath,
     cliBinPath,
     durationMs,
+    missingEnvHint,
   }
 }
 
@@ -125,7 +250,7 @@ async function installFromStackJson(cwd: string): Promise<void> {
 
   const results = await Promise.allSettled(
     toolNames.map(async (name) => {
-      const tool = findTool(name)
+      const tool = await findTool(name)
       if (tool !== undefined) {
         return installTool(tool, cwd)
       }
@@ -161,8 +286,31 @@ async function installFromStackJson(cwd: string): Promise<void> {
 
 // --- @handle flow ---
 
-async function installHandle(handle: string): Promise<void> {
+async function installHandle(handle: string, dryRun?: boolean): Promise<void> {
   const cleanHandle = handle.startsWith('@') ? handle.slice(1) : handle
+
+  // Guarantee 7: Check reserved handles
+  if (RESERVED_HANDLES.has(cleanHandle.toLowerCase())) {
+    throw new StackError('STACK_005', `@${cleanHandle} is a reserved handle name.`)
+  }
+
+  // Guarantee 7: Check handle similarity against known handles
+  for (const reserved of RESERVED_HANDLES) {
+    if (areHandlesSimilar(cleanHandle, reserved)) {
+      console.log(
+        chalk.yellow(
+          `\n⚠️  WARNING: @${cleanHandle} is similar to reserved handle @${reserved}. Typo?`,
+        ),
+      )
+      const { default: inquirer } = await import('inquirer')
+      const { proceed } = await inquirer.prompt<{ proceed: boolean }>([
+        { type: 'confirm', name: 'proceed', message: 'Continue anyway?', default: false },
+      ])
+      if (!proceed) return
+      break
+    }
+  }
+
   const spinner = ora(`Fetching @${cleanHandle}'s setup...`).start()
 
   const manifest = await fetchHandleManifest(cleanHandle)
@@ -181,9 +329,9 @@ async function installHandle(handle: string): Promise<void> {
 
   // Install all tools in parallel
   const toolInstalls = toolNames.map(async (name) => {
-    const registryTool = findTool(name)
+    const registryTool = await findTool(name)
     if (registryTool !== undefined) {
-      return installTool(registryTool, cwd)
+      return installTool(registryTool, cwd, { dryRun: dryRun === true })
     }
     // Tool not in local registry — skip for now
     return {
@@ -199,14 +347,17 @@ async function installHandle(handle: string): Promise<void> {
 
   results.push(...(await Promise.allSettled(toolInstalls)))
 
-  // Apply CLAUDE.md if present — ALWAYS interactive (diff + confirm)
-  if (manifest.claudeMd !== undefined) {
-    await writeClaudeMd(manifest.claudeMd, cwd, cwd, { interactive: true })
-  }
-
-  // Apply cursor rules if present — ALWAYS interactive (diff + confirm)
-  if (manifest.cursorRules !== undefined) {
-    await writeCursorRules(manifest.cursorRules, cwd, cwd, { interactive: true })
+  // Apply config files (skip in dry-run mode)
+  if (dryRun !== true) {
+    if (manifest.claudeMd !== undefined) {
+      await writeClaudeMd(manifest.claudeMd, cwd, cwd, { interactive: true })
+    }
+    if (manifest.cursorRules !== undefined) {
+      await writeCursorRules(manifest.cursorRules, cwd, cwd, { interactive: true })
+    }
+    if (manifest.windsurfRules !== undefined) {
+      await writeWindsurfrules(manifest.windsurfRules, cwd, cwd, { interactive: true })
+    }
   }
 
   const succeeded = results.filter((r) => r.status === 'fulfilled').length
@@ -246,34 +397,56 @@ function formatResult(result: InstallResult): string {
   lines.push('')
   lines.push(chalk.green(`✓ ${result.displayName} installed in ${duration}s`))
 
+  if (result.missingEnvHint === true) {
+    lines.push(
+      chalk.yellow(
+        `\n⚠️  This tool may require API keys. Check the tool's documentation for required environment variables.`,
+      ),
+    )
+  }
+
   return lines.join('\n')
 }
 
 export function createInstallCommand(): Command {
   return new Command('install')
     .argument('[name]', 'Tool name to install (or @handle)')
+    .option('--dry-run', 'Preview changes without modifying any files')
     .description('Install a tool or copy a developer setup')
-    .action(async (name?: string) => {
+    .action(async (name: string | undefined, opts: { dryRun?: boolean }) => {
       if (name === undefined) {
         await installFromStackJson(process.cwd())
         return
       }
 
       if (name.startsWith('@')) {
-        await installHandle(name)
+        await installHandle(name, opts.dryRun)
         return
       }
 
-      const tool = findTool(name)
+      const tool = await findTool(name)
 
       if (tool === undefined) {
-        const similar = findSimilarTools(name)
+        const similar = await findSimilarTools(name)
         const suggestion =
           similar.length > 0
             ? `Did you mean: ${similar.map((t) => chalk.cyan(t.name)).join(', ')}?`
             : 'Run "stack search" to find available tools.'
 
         throw new StackError('STACK_002', suggestion)
+      }
+
+      // Explicit --dry-run: show preview and stop
+      if (opts.dryRun === true) {
+        const result = await installTool(tool, process.cwd(), { dryRun: true })
+        console.log(formatResult(result))
+        return
+      }
+
+      // Guarantee 3: First run preview mode
+      if (isFirstRun()) {
+        const proceed = await showPreview(tool, process.cwd())
+        if (!proceed) return
       }
 
       const spinner = ora(`Installing ${tool.displayName}...`).start()

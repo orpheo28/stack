@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { StackError } from '../types/errors.js'
+import { getValidToken, refreshAccessToken } from '../utils/auth-token.js'
 
 // --- Zod Schemas for API response validation ---
 
@@ -15,6 +16,7 @@ const StackJsonSchema = z.object({
   handle: z.string().optional(),
   claudeMd: z.string().optional(),
   cursorRules: z.string().optional(),
+  windsurfRules: z.string().optional(),
   tools: z.record(ArtifactConfigSchema),
 })
 
@@ -48,7 +50,10 @@ function getBaseUrl(): string {
 
 // --- Helpers ---
 
-async function apiFetch(path: string, options?: RequestInit): Promise<Response> {
+async function apiFetch(
+  path: string,
+  options?: RequestInit & { withAuth?: boolean },
+): Promise<Response> {
   const url = `${getBaseUrl()}${path}`
 
   const headers: Record<string, string> = {
@@ -59,6 +64,15 @@ async function apiFetch(path: string, options?: RequestInit): Promise<Response> 
   if (options?.headers !== undefined) {
     const extra = options.headers as Record<string, string>
     Object.assign(headers, extra)
+  }
+
+  // Inject Authorization header for authenticated endpoints
+  const withAuth = options?.withAuth ?? false
+  if (withAuth && headers['Authorization'] === undefined) {
+    const token = await getValidToken()
+    if (token !== null) {
+      headers['Authorization'] = `Bearer ${token}`
+    }
   }
 
   let response: Response
@@ -75,6 +89,23 @@ async function apiFetch(path: string, options?: RequestInit): Promise<Response> 
     )
   }
 
+  // On 401: attempt one token refresh then retry
+  if (response.status === 401 && withAuth) {
+    const newToken = await refreshAccessToken()
+    if (newToken !== null) {
+      headers['Authorization'] = `Bearer ${newToken}`
+      try {
+        response = await fetch(url, { ...options, headers })
+      } catch (error) {
+        throw new StackError(
+          'STACK_004',
+          'Network error. Check your internet connection and try again.',
+          error instanceof Error ? error : undefined,
+        )
+      }
+    }
+  }
+
   return response
 }
 
@@ -89,6 +120,12 @@ export async function fetchHandleManifest(handle: string): Promise<ValidatedStac
       throw new StackError(
         'STACK_005',
         `Handle @${cleanHandle} not found on use.dev. Check the spelling.`,
+      )
+    }
+    if (response.status === 429) {
+      throw new StackError(
+        'STACK_004',
+        'Rate limited by use.dev API. Please wait a moment and try again.',
       )
     }
     throw new StackError(
@@ -138,18 +175,28 @@ export async function searchTools(query: string): Promise<readonly ToolSearchRes
   return parsed.success ? parsed.data : []
 }
 
-export async function publishSetup(manifest: ValidatedStackJson, token: string): Promise<string> {
+export async function publishSetup(manifest: ValidatedStackJson, token?: string): Promise<string> {
+  const extraHeaders: Record<string, string> = {}
+  if (typeof token === 'string' && token !== '') {
+    extraHeaders['Authorization'] = `Bearer ${token}`
+  }
+
   const response = await apiFetch('/publish', {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    withAuth: true, // auto-inject + auto-refresh; manual token above takes precedence if set
+    headers: extraHeaders,
     body: JSON.stringify(manifest),
   })
 
   if (!response.ok) {
     if (response.status === 401) {
       throw new StackError('STACK_006', 'Authentication required. Run "stack login" first.')
+    }
+    if (response.status === 429) {
+      throw new StackError(
+        'STACK_004',
+        'Rate limited by use.dev API. Please wait a moment and try again.',
+      )
     }
     throw new StackError(
       'STACK_004',

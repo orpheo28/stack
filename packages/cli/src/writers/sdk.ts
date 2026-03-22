@@ -2,6 +2,7 @@ import { mkdir } from 'node:fs/promises'
 import { execSync } from 'node:child_process'
 import { join } from 'node:path'
 import { atomicWrite } from '../utils/atomic-write.js'
+import { StackError } from '../types/errors.js'
 
 export interface SdkWriteResult {
   readonly templatePath: string
@@ -23,7 +24,10 @@ export async function writeSdkSetup(
   if (sdkPackage !== undefined && skipNpmInstall !== true) {
     // Validate package name to prevent command injection
     if (!VALID_PACKAGE_NAME.test(sdkPackage)) {
-      throw new Error(`Invalid package name: ${sdkPackage}`)
+      throw new StackError(
+        'STACK_002',
+        `Invalid package name: ${sdkPackage}. Must match pattern: @scope/name or name`,
+      )
     }
 
     try {
@@ -34,7 +38,9 @@ export async function writeSdkSetup(
       })
       packageInstalled = true
     } catch {
-      // npm install failed — continue with template generation
+      process.stderr.write(
+        `Warning: npm install ${sdkPackage} failed — continuing with template generation\n`,
+      )
     }
   }
 
@@ -47,6 +53,21 @@ export async function writeSdkSetup(
   await atomicWrite(filePath, template, projectRoot, {
     homeDir,
     stackDir: homeDir !== undefined ? join(homeDir, '.stack') : undefined,
+    validate: (content) => {
+      if (content.trim().length === 0) {
+        throw new StackError('STACK_001', `SDK template for ${toolName} is empty`)
+      }
+      if (
+        !content.includes('import') &&
+        !content.includes('export') &&
+        !content.includes('require')
+      ) {
+        throw new StackError(
+          'STACK_001',
+          `SDK template for ${toolName} does not contain valid TypeScript (missing import/export/require)`,
+        )
+      }
+    },
   })
 
   return { templatePath: filePath, packageInstalled }
