@@ -19,7 +19,7 @@ interface NpmSearchResponse {
 
 async function searchNpm(query: string, size = 100): Promise<NpmPackage[]> {
   const url = `https://registry.npmjs.org/-/v1/search?text=${encodeURIComponent(query)}&size=${size.toString()}`
-  const response = await fetch(url, { headers: { 'User-Agent': 'stackdev-registry/1.0' } })
+  const response = await fetch(url, { headers: { 'User-Agent': 'usedev-registry/1.0' } })
   if (!response.ok) return []
   const data = (await response.json()) as NpmSearchResponse
   return (data.objects ?? []).map((o) => o.package)

@@ -40,7 +40,7 @@ describe('E2E: publish flow', () => {
   })
 
   it('publish sends correct payload after installing tools', async () => {
-    const expectedUrl = 'https://use.dev/@dev'
+    const expectedUrl = 'https://getstack.com/@dev'
     vi.mocked(publishSetup).mockResolvedValue(expectedUrl)
 
     // Install stripe first
@@ -64,7 +64,7 @@ describe('E2E: publish flow', () => {
   })
 
   it('publish includes multiple tools in payload', async () => {
-    vi.mocked(publishSetup).mockResolvedValue('https://use.dev/@dev')
+    vi.mocked(publishSetup).mockResolvedValue('https://getstack.com/@dev')
 
     const stripe = findToolLocal('stripe')!
     const linear = findToolLocal('linear')!

@@ -22,7 +22,7 @@ export function assertIntegrity(actual: string, expected: string, label: string)
   if (actualBuf.length !== expectedBuf.length || !timingSafeEqual(actualBuf, expectedBuf)) {
     throw new StackError(
       'STACK_003',
-      `Integrity check failed for "${label}". Expected hash: ${normalizedExpected}, got: ${normalizedActual}. Install aborted. Report to security@use.dev if unexpected.`,
+      `Integrity check failed for "${label}". Expected hash: ${normalizedExpected}, got: ${normalizedActual}. Install aborted. Report to security@getstack.com if unexpected.`,
     )
   }
 }

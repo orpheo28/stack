@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { createServiceClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = {
-  title: 'Search — use.dev',
+  title: 'Search — getstack.com',
   description: 'Search MCP servers, CLIs, SDKs, and AI-native dev tools.',
 }
 
@@ -50,7 +50,7 @@ export default async function SearchPage({ searchParams }: Props) {
           href="/"
           className="text-zinc-600 hover:text-zinc-400 text-sm mb-8 inline-block transition-colors"
         >
-          ← use.dev
+          ← getstack.com
         </a>
 
         <h1 className="text-3xl font-bold mb-6">Search tools</h1>

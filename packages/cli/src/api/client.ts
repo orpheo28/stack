@@ -42,7 +42,7 @@ export type ToolSearchResult = z.infer<typeof ToolSearchResultSchema>
 
 // --- Config ---
 
-const DEFAULT_BASE_URL = 'https://use.dev/api'
+const DEFAULT_BASE_URL = 'https://getstack.com/api'
 
 function getBaseUrl(): string {
   return process.env['STACK_API_URL'] ?? DEFAULT_BASE_URL
@@ -58,7 +58,7 @@ async function apiFetch(
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'User-Agent': 'stackdev-cli',
+    'User-Agent': 'usedev-cli',
   }
 
   if (options?.headers !== undefined) {
@@ -119,13 +119,13 @@ export async function fetchHandleManifest(handle: string): Promise<ValidatedStac
     if (response.status === 404) {
       throw new StackError(
         'STACK_005',
-        `Handle @${cleanHandle} not found on use.dev. Check the spelling.`,
+        `Handle @${cleanHandle} not found on getstack.com. Check the spelling.`,
       )
     }
     if (response.status === 429) {
       throw new StackError(
         'STACK_004',
-        'Rate limited by use.dev API. Please wait a moment and try again.',
+        'Rate limited by getstack.com API. Please wait a moment and try again.',
       )
     }
     throw new StackError(
@@ -138,7 +138,10 @@ export async function fetchHandleManifest(handle: string): Promise<ValidatedStac
   const parsed = StackJsonSchema.safeParse(data)
 
   if (!parsed.success) {
-    throw new StackError('STACK_001', `Invalid response from use.dev API: ${parsed.error.message}`)
+    throw new StackError(
+      'STACK_001',
+      `Invalid response from getstack.com API: ${parsed.error.message}`,
+    )
   }
 
   return parsed.data
@@ -195,7 +198,7 @@ export async function publishSetup(manifest: ValidatedStackJson, token?: string)
     if (response.status === 429) {
       throw new StackError(
         'STACK_004',
-        'Rate limited by use.dev API. Please wait a moment and try again.',
+        'Rate limited by getstack.com API. Please wait a moment and try again.',
       )
     }
     throw new StackError(
@@ -208,5 +211,5 @@ export async function publishSetup(manifest: ValidatedStackJson, token?: string)
   const parsed = PublishResponseSchema.safeParse(data)
   const url = parsed.success ? parsed.data.url : undefined
 
-  return url ?? `https://use.dev/@${manifest.handle ?? 'unknown'}`
+  return url ?? `https://getstack.com/@${manifest.handle ?? 'unknown'}`
 }

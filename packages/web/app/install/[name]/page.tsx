@@ -8,13 +8,13 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { name } = await params
-  const title = `Install ${name} — use.dev`
-  const description = `Install ${name} in one command: npx stackdev install ${name}`
+  const title = `Install ${name} — getstack.com`
+  const description = `Install ${name} in one command: npx usedev install ${name}`
   const ogImage = `/api/og?tool=${encodeURIComponent(name)}`
   return {
     title,
     description,
-    openGraph: { title, description, siteName: 'use.dev', type: 'website', images: [ogImage] },
+    openGraph: { title, description, siteName: 'getstack.com', type: 'website', images: [ogImage] },
     twitter: { card: 'summary_large_image', title, description, images: [ogImage] },
   }
 }
@@ -42,7 +42,7 @@ export default async function InstallPage({ params }: Props) {
   if (result.error !== null) notFound()
   const tool = result.data
 
-  const command = `npx stackdev install ${tool.name}`
+  const command = `npx usedev install ${tool.name}`
   const fallback = { bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/20' }
   const badge = TYPE_BADGE[tool.type] ?? fallback
 
@@ -68,7 +68,7 @@ export default async function InstallPage({ params }: Props) {
           >
             <path d="m15 18-6-6 6-6" />
           </svg>
-          use.dev
+          getstack.com
         </a>
 
         {/* Header */}

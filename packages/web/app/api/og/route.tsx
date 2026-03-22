@@ -61,9 +61,9 @@ export async function GET(request: NextRequest) {
               border: '1px solid #27272a',
             }}
           >
-            $ npx stackdev @{handle}
+            $ npx usedev @{handle}
           </div>
-          <div style={{ marginTop: 40, fontSize: 18, color: '#52525b' }}>use.dev</div>
+          <div style={{ marginTop: 40, fontSize: 18, color: '#52525b' }}>getstack.com</div>
         </div>
       </div>,
       { width: 1200, height: 630 },
@@ -99,9 +99,9 @@ export async function GET(request: NextRequest) {
               border: '1px solid #27272a',
             }}
           >
-            $ npx stackdev install {tool}
+            $ npx usedev install {tool}
           </div>
-          <div style={{ marginTop: 40, fontSize: 18, color: '#52525b' }}>use.dev</div>
+          <div style={{ marginTop: 40, fontSize: 18, color: '#52525b' }}>getstack.com</div>
         </div>
       </div>,
       { width: 1200, height: 630 },
@@ -128,7 +128,7 @@ export async function GET(request: NextRequest) {
         <div style={{ fontSize: 28, color: '#71717a', marginTop: 16 }}>
           Universal installer for AI-native devs
         </div>
-        <div style={{ marginTop: 40, fontSize: 18, color: '#52525b' }}>use.dev</div>
+        <div style={{ marginTop: 40, fontSize: 18, color: '#52525b' }}>getstack.com</div>
       </div>
     </div>,
     { width: 1200, height: 630 },

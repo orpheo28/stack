@@ -146,7 +146,7 @@ export async function POST(req: Request): Promise<Response> {
       return NextResponse.json({ error: 'Failed to publish' }, { status: 500 })
     }
 
-    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://use.dev'
+    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://getstack.com'
 
     log('info', 'publish', {
       path: '/api/publish',

@@ -20,7 +20,7 @@ export default function LoginPage() {
           href="/"
           className="text-zinc-600 hover:text-zinc-400 text-sm mb-8 inline-block transition-colors"
         >
-          ← use.dev
+          ← getstack.com
         </a>
 
         <h1 className="text-3xl font-bold mb-2">Sign in</h1>

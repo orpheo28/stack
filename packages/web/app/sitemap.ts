@@ -14,13 +14,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const staticPages: MetadataRoute.Sitemap = [
     {
-      url: 'https://use.dev',
+      url: 'https://getstack.com',
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 1,
     },
     {
-      url: 'https://use.dev/search',
+      url: 'https://getstack.com/search',
       lastModified: new Date(),
       changeFrequency: 'daily',
       priority: 0.8,
@@ -28,14 +28,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ]
 
   const handlePages: MetadataRoute.Sitemap = handles.map((h) => ({
-    url: `https://use.dev/@${h.handle}`,
+    url: `https://getstack.com/@${h.handle}`,
     lastModified: new Date(h.updated_at),
     changeFrequency: 'weekly' as const,
     priority: 0.9,
   }))
 
   const toolPages: MetadataRoute.Sitemap = tools.map((t) => ({
-    url: `https://use.dev/install/${t.name}`,
+    url: `https://getstack.com/install/${t.name}`,
     lastModified: new Date(t.created_at),
     changeFrequency: 'weekly' as const,
     priority: 0.7,

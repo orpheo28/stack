@@ -19,7 +19,7 @@ async function searchGitHub(topic: string, page = 1): Promise<GitHubRepo[]> {
   const token = process.env['GITHUB_TOKEN']
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
-    'User-Agent': 'stackdev-registry/1.0',
+    'User-Agent': 'usedev-registry/1.0',
   }
   if (token !== undefined && token !== '') {
     headers['Authorization'] = `Bearer ${token}`

@@ -66,7 +66,7 @@ export async function POST(req: Request): Promise<Response> {
         .eq('handle', handle.handle)
     }
 
-    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://use.dev'
+    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://getstack.com'
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',

@@ -4,19 +4,19 @@ import { createServiceClient } from '@/lib/supabase/server'
 import type { Json } from '@/types/database'
 
 export const metadata: Metadata = {
-  title: 'use.dev — Universal installer for AI-native devs',
+  title: 'getstack.com — Universal installer for AI-native devs',
   description:
     "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
   openGraph: {
-    title: 'use.dev — Universal installer for AI-native devs',
+    title: 'getstack.com — Universal installer for AI-native devs',
     description:
       "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
-    siteName: 'use.dev',
+    siteName: 'getstack.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'use.dev — Universal installer for AI-native devs',
+    title: 'getstack.com — Universal installer for AI-native devs',
     description:
       "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
   },
@@ -86,8 +86,8 @@ export default async function HomePage() {
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
-            <CommandBlock text="npx stackdev install stripe" accent="emerald" />
-            <CommandBlock text="npx stackdev @orpheo" accent="violet" />
+            <CommandBlock text="npx usedev install stripe" accent="emerald" />
+            <CommandBlock text="npx usedev @orpheo" accent="violet" />
           </div>
         </header>
 
@@ -97,7 +97,7 @@ export default async function HomePage() {
           <section>
             <SectionHeader title="Trending setups" subtitle="this week" />
             {handles.length === 0 ? (
-              <EmptyState text="No setups yet. Be the first." command="npx stackdev publish" />
+              <EmptyState text="No setups yet. Be the first." command="npx usedev publish" />
             ) : (
               <div className="space-y-1">
                 {handles.map((h, i) => {
@@ -185,7 +185,7 @@ export default async function HomePage() {
 
         {/* Footer */}
         <footer className="mt-24 pt-8 border-t border-zinc-900 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-zinc-600">
-          <p>use.dev</p>
+          <p>getstack.com</p>
           <div className="flex items-center gap-6">
             <Link href="/search" className="hover:text-zinc-400 transition-colors">
               Search
@@ -197,7 +197,7 @@ export default async function HomePage() {
               GitHub
             </a>
             <a
-              href="https://www.npmjs.com/package/stackdev"
+              href="https://www.npmjs.com/package/usedev"
               className="hover:text-zinc-400 transition-colors"
             >
               npm

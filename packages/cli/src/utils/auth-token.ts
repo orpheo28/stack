@@ -84,9 +84,9 @@ export async function clearTokens(homeDir?: string): Promise<void> {
 // --- Refresh ---
 
 function getAppUrl(): string {
-  // STACK_APP_URL is the base web URL (e.g. https://use.dev).
+  // STACK_APP_URL is the base web URL (e.g. https://getstack.com).
   // Avoid deriving from STACK_API_URL via string manipulation — fragile.
-  return process.env['STACK_APP_URL'] ?? 'https://use.dev'
+  return process.env['STACK_APP_URL'] ?? 'https://getstack.com'
 }
 
 interface RefreshResponse {
@@ -111,7 +111,7 @@ export async function refreshAccessToken(homeDir?: string): Promise<string | nul
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'User-Agent': 'stackdev-cli',
+        'User-Agent': 'usedev-cli',
       },
       body: JSON.stringify({ refresh_token: auth.refresh_token }),
     })

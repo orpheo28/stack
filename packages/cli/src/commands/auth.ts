@@ -85,11 +85,11 @@ function openBrowser(url: string): boolean {
 // --- API ---
 
 function getAppUrl(): string {
-  return process.env['STACK_APP_URL'] ?? 'https://use.dev'
+  return process.env['STACK_APP_URL'] ?? 'https://getstack.com'
 }
 
 function getApiUrl(): string {
-  return process.env['STACK_API_URL'] ?? 'https://use.dev/api'
+  return process.env['STACK_API_URL'] ?? 'https://getstack.com/api'
 }
 
 // --- Browser OAuth flow ---
@@ -182,7 +182,7 @@ async function exchangeToken(cliToken: string): Promise<AuthData> {
   const url = `${getApiUrl()}/auth/cli/exchange`
   const response = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'User-Agent': 'stackdev-cli' },
+    headers: { 'Content-Type': 'application/json', 'User-Agent': 'usedev-cli' },
     body: JSON.stringify({ token: cliToken }),
   })
 
@@ -223,7 +223,7 @@ async function loginWithTokenPaste(): Promise<void> {
     {
       type: 'password',
       name: 'token',
-      message: 'Enter your use.dev API token (from https://use.dev/settings/tokens):',
+      message: 'Enter your getstack.com API token (from https://getstack.com/settings/tokens):',
       mask: '*',
     },
   ])
@@ -241,7 +241,7 @@ async function loginWithTokenPaste(): Promise<void> {
 
 export function createLoginCommand(): Command {
   return new Command('login')
-    .description('Authenticate with use.dev via GitHub OAuth')
+    .description('Authenticate with getstack.com via GitHub OAuth')
     .option('--token', 'Use token paste instead of browser login')
     .action(async (opts: { token?: boolean }) => {
       // Fallback mode

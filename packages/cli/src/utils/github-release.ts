@@ -50,7 +50,7 @@ export async function fetchLatestRelease(owner: string, repo: string): Promise<G
   const url = `https://api.github.com/repos/${owner}/${repo}/releases/latest`
   const headers: Record<string, string> = {
     Accept: 'application/vnd.github+json',
-    'User-Agent': 'stackdev-cli',
+    'User-Agent': 'usedev-cli',
   }
 
   const token = process.env['GITHUB_TOKEN']
@@ -137,7 +137,7 @@ export function pickAsset(release: GithubRelease): GithubAsset | null {
 
 export async function downloadBinary(url: string, destPath: string): Promise<void> {
   const response = await fetch(url, {
-    headers: { 'User-Agent': 'stackdev-cli' },
+    headers: { 'User-Agent': 'usedev-cli' },
   })
 
   if (!response.ok || response.body === null) {
@@ -232,7 +232,7 @@ export async function verifySha256IfAvailable(
 
   try {
     const response = await fetch(checksumAsset.browser_download_url, {
-      headers: { 'User-Agent': 'stackdev-cli' },
+      headers: { 'User-Agent': 'usedev-cli' },
     })
     if (!response.ok) return true // Can't fetch checksums — skip
 

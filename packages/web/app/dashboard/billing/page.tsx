@@ -38,7 +38,7 @@ async function createCheckoutAction(formData: FormData): Promise<never> {
         .eq('handle', handle.handle)
     }
 
-    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://use.dev'
+    const appUrl = process.env['NEXT_PUBLIC_APP_URL'] ?? 'https://getstack.com'
     const session = await stripe.checkout.sessions.create({
       customer: customerId,
       mode: 'subscription',
@@ -189,10 +189,10 @@ export default async function BillingPage({
           <p className="text-xs text-zinc-500">
             To manage or cancel your subscription, contact{' '}
             <a
-              href="mailto:support@use.dev"
+              href="mailto:support@getstack.com"
               className="text-zinc-400 hover:text-zinc-200 underline"
             >
-              support@use.dev
+              support@getstack.com
             </a>
             .
           </p>

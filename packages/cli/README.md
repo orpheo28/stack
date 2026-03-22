@@ -1,4 +1,4 @@
-# stackdev
+# usedev
 
 Universal installer for the AI-native developer ecosystem.
 
@@ -7,7 +7,7 @@ One command installs any tool — CLI, MCP server, SDK, AI config — directly c
 ## Install
 
 ```bash
-npm install -g stackdev
+npm install -g usedev
 ```
 
 ## Usage
@@ -49,7 +49,7 @@ stack rollback
 
 ## Profiles
 
-Share your dev setup at [use.dev](https://use.dev). Others can copy it with one command:
+Share your dev setup at [getstack.com](https://getstack.com). Others can copy it with one command:
 
 ```bash
 stack @yourhandle

@@ -35,7 +35,7 @@ interface RemoteToolEntry {
 // --- Config ---
 
 const CACHE_TTL_MS = 60 * 60 * 1000 // 1 hour
-const DEFAULT_API_URL = 'https://use.dev/api'
+const DEFAULT_API_URL = 'https://getstack.com/api'
 
 function getApiUrl(): string {
   return process.env['STACK_API_URL'] ?? DEFAULT_API_URL
@@ -79,7 +79,7 @@ function isCacheValid(cache: CacheData): boolean {
 async function fetchRemoteTools(): Promise<readonly RemoteToolEntry[]> {
   const url = `${getApiUrl()}/tools`
   const response = await fetch(url, {
-    headers: { 'User-Agent': 'stackdev-cli' },
+    headers: { 'User-Agent': 'usedev-cli' },
   })
 
   if (!response.ok) return []

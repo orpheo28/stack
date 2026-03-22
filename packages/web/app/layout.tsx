@@ -6,20 +6,20 @@ import { cn } from '@/lib/utils'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'use.dev — Universal installer for AI-native devs',
+  title: 'getstack.com — Universal installer for AI-native devs',
   description:
     'One command installs any tool. One profile shows how you work. npm for AI-native dev workflows.',
-  metadataBase: new URL('https://use.dev'),
+  metadataBase: new URL('https://getstack.com'),
   openGraph: {
-    title: 'use.dev — Universal installer for AI-native devs',
+    title: 'getstack.com — Universal installer for AI-native devs',
     description:
       "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
-    siteName: 'use.dev',
+    siteName: 'getstack.com',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'use.dev — Universal installer for AI-native devs',
+    title: 'getstack.com — Universal installer for AI-native devs',
     description:
       "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
   },

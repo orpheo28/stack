@@ -20,13 +20,13 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { handle } = await params
   const clean = handle.replace(/^@/, '')
-  const title = `@${clean} — use.dev`
-  const description = `Copy @${clean}'s AI-native dev setup in one command: npx stackdev @${clean}`
+  const title = `@${clean} — getstack.com`
+  const description = `Copy @${clean}'s AI-native dev setup in one command: npx usedev @${clean}`
   const ogImage = `/api/og?handle=${encodeURIComponent(clean)}`
   return {
     title,
     description,
-    openGraph: { title, description, siteName: 'use.dev', type: 'profile', images: [ogImage] },
+    openGraph: { title, description, siteName: 'getstack.com', type: 'profile', images: [ogImage] },
     twitter: { card: 'summary_large_image', title, description, images: [ogImage] },
   }
 }
@@ -63,7 +63,7 @@ export default async function HandlePage({ params }: Props) {
   const useJson = parseUseJson(data.use_json)
   const tools = useJson.tools ?? {}
   const toolEntries = Object.entries(tools)
-  const command = `npx stackdev @${data.handle}`
+  const command = `npx usedev @${data.handle}`
   const claudeMdLines = data.claude_md?.split('\n') ?? []
   const claudeMdPreview = claudeMdLines.slice(0, 8).join('\n')
   const hasMoreClaudeMd = claudeMdLines.length > 8
@@ -91,7 +91,7 @@ export default async function HandlePage({ params }: Props) {
           >
             <path d="m15 18-6-6 6-6" />
           </svg>
-          use.dev
+          getstack.com
         </a>
 
         {/* Profile header */}

@@ -1,6 +1,6 @@
 {
-  "name": "stackdev",
-  "version": "0.1.0",
+  "name": "usedev",
+  "version": "0.1.2",
   "description": "Universal installer for the AI-native developer ecosystem",
   "type": "module",
   "bin": {

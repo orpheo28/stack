@@ -6,9 +6,9 @@ One command installs any tool — MCP server, CLI, SDK, config.
 One command copies any developer's entire setup.
 
 ```bash
-npx stackdev install stripe     # MCP + env + SDK configured in 8 seconds
-npx stackdev @orpheo             # Copy Orpheo's entire setup — tools + CLAUDE.md
-npx stackdev install             # Install from stack.json (like npm install)
+npx usedev install stripe     # MCP + env + SDK configured in 8 seconds
+npx usedev @orpheo             # Copy Orpheo's entire setup — tools + CLAUDE.md
+npx usedev install             # Install from stack.json (like npm install)
 ```
 
 GitHub shows what you build. **Stack shows how you work.**
@@ -23,17 +23,17 @@ Stack does it in one command, in 8 seconds.
 
 ```bash
 # Install a tool
-npx stackdev install stripe
+npx usedev install stripe
 
 # Copy a dev's entire setup
-npx stackdev @orpheo
+npx usedev @orpheo
 
 # Publish your own setup
-npx stackdev login
-npx stackdev publish
+npx usedev login
+npx usedev publish
 ```
 
-Your profile goes live at `use.dev/@yourhandle` — adoption score, stack, one-click copy command.
+Your profile goes live at `getstack.com/@yourhandle` — adoption score, stack, one-click copy command.
 
 ## Commands
 
@@ -42,12 +42,12 @@ Your profile goes live at `use.dev/@yourhandle` — adoption score, stack, one-c
 | `stack install <name>` | Install a tool (MCP, CLI, SDK, API) |
 | `stack install`        | Install all tools from `stack.json` |
 | `stack @handle`        | Copy a dev's entire setup           |
-| `stack publish`        | Publish your setup to use.dev       |
+| `stack publish`        | Publish your setup to getstack.com  |
 | `stack search <query>` | Search the tool registry            |
 | `stack list`           | List installed tools & clients      |
 | `stack remove <name>`  | Remove a tool                       |
 | `stack rollback`       | Undo the last install               |
-| `stack login`          | Authenticate with use.dev           |
+| `stack login`          | Authenticate with getstack.com      |
 
 ## Registry — 36 Tools
 
@@ -101,7 +101,7 @@ Stack touches your most sensitive config files. Security is non-negotiable.
 
 ## stack.json
 
-The `package.json` for AI-native workflows. Commit it — new team members run `npx stackdev install` and they're set up in seconds.
+The `package.json` for AI-native workflows. Commit it — new team members run `npx usedev install` and they're set up in seconds.
 
 ```json
 {
@@ -134,7 +134,7 @@ node packages/cli/dist/index.js list
 stack/
   packages/
     cli/          # CLI — Commander.js + TypeScript strict
-    web/          # use.dev — Next.js 14 + Tailwind + Supabase
+    web/          # getstack.com — Next.js 14 + Tailwind + Supabase
   supabase/
     migrations/   # PostgreSQL + RLS + Edge Functions
 ```
