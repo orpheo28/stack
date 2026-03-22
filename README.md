@@ -1,16 +1,17 @@
 # stack
 
-**One command installs any AI-native tool. One command copies any dev's setup.**
+**npm for AI-native dev workflows.**
+
+One command installs any tool — MCP server, CLI, SDK, config.
+One command copies any developer's entire setup.
 
 ```bash
 npx stackdev install stripe     # MCP + env + SDK configured in 8 seconds
-npx stackdev @theo              # Copy Theo's entire setup — 14 tools + CLAUDE.md
+npx stackdev @orpheo             # Copy Orpheo's entire setup — tools + CLAUDE.md
 npx stackdev install             # Install from stack.json (like npm install)
 ```
 
 GitHub shows what you build. **Stack shows how you work.**
-
----
 
 ## The Problem
 
@@ -18,43 +19,23 @@ Installing Stripe MCP for Claude Code takes 12 minutes and 7 manual steps: find 
 
 Stack does it in one command, in 8 seconds.
 
-## What Stack Does
-
-### Install any tool
+## Quick Start
 
 ```bash
+# Install a tool
 npx stackdev install stripe
-```
 
-Result:
-
-- `claude_desktop_config.json` updated with Stripe MCP server
-- `.env` created with `STRIPE_API_KEY=<your-key-here>`
-- `src/lib/stripe.ts` generated with typed client
-- `stack.json` tracks what you installed
-
-### Copy any dev's setup
-
-```bash
+# Copy a dev's entire setup
 npx stackdev @orpheo
-```
 
-Result:
-
-- 14 tools installed and configured
-- CLAUDE.md synced (with diff preview + confirmation)
-- Cursor rules applied
-- You open Claude Code — it responds with Orpheo's patterns
-
-### Publish your setup
-
-```bash
+# Publish your own setup
+npx stackdev login
 npx stackdev publish
 ```
 
-Your profile goes live at `use.dev/@yourhandle` with your stack, adoption score, and a one-click copy command.
+Your profile goes live at `use.dev/@yourhandle` — adoption score, stack, one-click copy command.
 
-## All Commands
+## Commands
 
 | Command                | Description                         |
 | ---------------------- | ----------------------------------- |
@@ -63,46 +44,42 @@ Your profile goes live at `use.dev/@yourhandle` with your stack, adoption score,
 | `stack @handle`        | Copy a dev's entire setup           |
 | `stack publish`        | Publish your setup to use.dev       |
 | `stack search <query>` | Search the tool registry            |
-| `stack list`           | List installed tools                |
+| `stack list`           | List installed tools & clients      |
 | `stack remove <name>`  | Remove a tool                       |
 | `stack rollback`       | Undo the last install               |
 | `stack login`          | Authenticate with use.dev           |
 
-## Registry — 20 Tools at Launch
+## Registry — 36 Tools
 
-| Tool        | Type      | What it configures                          |
-| ----------- | --------- | ------------------------------------------- |
-| stripe      | MCP       | `claude_desktop_config.json` + `.env`       |
-| supabase    | MCP + SDK | MCP config + `.env` + `src/lib/supabase.ts` |
-| anthropic   | SDK       | `.env` + `src/lib/anthropic.ts`             |
-| vercel      | MCP       | `claude_desktop_config.json`                |
-| github      | MCP       | MCP config + `.env`                         |
-| resend      | SDK       | `.env` + `src/lib/resend.ts`                |
-| linear      | MCP       | MCP config + `.env`                         |
-| notion      | MCP       | MCP config + `.env`                         |
-| cloudflare  | MCP       | `claude_desktop_config.json`                |
-| neon        | MCP       | MCP config + `.env`                         |
-| upstash     | SDK       | `.env` + `src/lib/upstash.ts`               |
-| replicate   | SDK       | `.env` + `src/lib/replicate.ts`             |
-| inngest     | SDK       | `src/lib/inngest.ts`                        |
-| axiom       | MCP       | MCP config + `.env`                         |
-| gws         | CLI       | `~/.stack/bin/gws` + PATH                   |
-| openclaw    | CLI       | `~/.stack/bin/openclaw` + PATH              |
-| browserbase | MCP       | MCP config + `.env`                         |
-| twilio      | SDK       | `.env` + `src/lib/twilio.ts`                |
-| reducto     | MCP       | MCP config + `.env`                         |
-| liveblocks  | SDK       | `src/lib/liveblocks.ts`                     |
+### MCP Servers
+
+Stripe, Supabase, Vercel, GitHub, Linear, Notion, Cloudflare, Neon, Axiom, Browserbase, Reducto, Playwright, Sentry, Slack, Figma, Docker, Prisma, Firebase, Perplexity, Brave Search, E2B, Pinecone, Firecrawl, MongoDB, Exa
+
+### SDKs
+
+Anthropic, Resend, Upstash, Replicate, Inngest, OpenAI, Google AI, Vercel AI, Mistral, Groq, LangChain, Stripe SDK, Drizzle, Twilio, Liveblocks
+
+### CLIs
+
+Google Workspace (gws), OpenClaw
+
+Each tool auto-configures the right files: MCP config, `.env`, TypeScript client, PATH.
 
 ## Context Detection
 
-Stack auto-detects your environment:
+Stack auto-detects your environment and configures all detected clients:
 
-- **Claude Desktop** — writes to `claude_desktop_config.json`
-- **Cursor** — writes to `.cursor/mcp.json`
-- **VS Code** — writes to `.vscode/mcp.json`
-- **Windsurf** — writes to `.windsurfrules`
-- **Claude Code** — writes to `CLAUDE.md`
-- **Node.js project** — detects `package.json`, generates TypeScript clients
+| Client         | Config file                   |
+| -------------- | ----------------------------- |
+| Claude Desktop | `claude_desktop_config.json`  |
+| Cursor         | `.cursor/mcp.json`            |
+| VS Code        | `.vscode/mcp.json`            |
+| Windsurf       | `.windsurfrules`              |
+| Claude Code    | `CLAUDE.md`                   |
+| Codex          | `AGENTS.md`                   |
+| OpenCode       | `opencode.json`               |
+| Continue       | `.continue/config.json`       |
+| Zed            | `~/.config/zed/settings.json` |
 
 Multiple clients detected? Stack configures all of them.
 
@@ -110,22 +87,21 @@ Multiple clients detected? Stack configures all of them.
 
 Stack touches your most sensitive config files. Security is non-negotiable.
 
-- **Atomic writes** — tmp file + validate + rename. Process crash? Original file preserved.
-- **Automatic backups** — every modified file backed up to `~/.stack/backups/` with `stack rollback`
-- **Dry run on first use** — preview everything before any file is modified
-- **Prompt injection scan** — external CLAUDE.md scanned for dangerous patterns before apply
-- **Diff + confirm** — CLAUDE.md and cursor rules always show diff, always ask permission
+- **Atomic writes** — tmp + validate + rename. Crash-safe.
+- **Automatic backups** — `~/.stack/backups/` + `stack rollback`
+- **Dry run on first use** — preview mode before any file is modified
+- **Prompt injection scan** — external CLAUDE.md scanned before apply
+- **Diff + confirm** — CLAUDE.md and cursor rules always show diff first
 - **SHA256 integrity** — registry definitions verified before install
-- **Whitelist** — writes restricted to known safe paths only
+- **Path whitelist** — writes restricted to known safe paths
 - **Zero exfiltration** — `.env` values never leave your machine
-- **No sudo** — CLI tools install to `~/.stack/bin/`, not `/usr/local/bin/`
-- **HTTPS only** — all API communication encrypted
+- **No sudo** — CLI tools go to `~/.stack/bin/`, not `/usr/local/bin/`
 
-Full details: [SECURITY.md](SECURITY.md)
+269 tests including 25 dedicated security tests (T-SEC-001 to T-SEC-010).
 
 ## stack.json
 
-The `package.json` for AI-native workflows. Commit it to your repo — new team members run `npx stackdev install` and they're set up in seconds.
+The `package.json` for AI-native workflows. Commit it — new team members run `npx stackdev install` and they're set up in seconds.
 
 ```json
 {
@@ -141,11 +117,11 @@ The `package.json` for AI-native workflows. Commit it to your repo — new team 
 ## Development
 
 ```bash
-git clone https://github.com/stack-dev/stack.git
+git clone https://github.com/orpheohellandsjo/stack.git
 cd stack
 pnpm install
 pnpm build:cli
-pnpm test          # 225 tests (CLI + web)
+pnpm test              # 269 tests, all green
 
 # Test locally
 node packages/cli/dist/index.js install stripe
@@ -157,13 +133,13 @@ node packages/cli/dist/index.js list
 ```
 stack/
   packages/
-    cli/          # The CLI — Commander.js + TypeScript
-    web/          # use.dev — Next.js 14 + Supabase
+    cli/          # CLI — Commander.js + TypeScript strict
+    web/          # use.dev — Next.js 14 + Tailwind + Supabase
   supabase/
-    migrations/   # PostgreSQL schema + RLS + functions
+    migrations/   # PostgreSQL + RLS + Edge Functions
 ```
 
-**Stack**: Node.js 20 + TypeScript strict + Turborepo + pnpm workspaces
+**Stack**: Node.js 20, TypeScript strict, Turborepo, pnpm workspaces
 
 ## License
 

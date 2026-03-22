@@ -1,16 +1,34 @@
 import type { Metadata } from 'next'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import { Analytics } from '@vercel/analytics/react'
+import { cn } from '@/lib/utils'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'Stack - Universal installer for AI-native developers',
-  description: 'One command installs any tool. One profile shows how you work.',
+  title: 'use.dev — Universal installer for AI-native devs',
+  description:
+    'One command installs any tool. One profile shows how you work. npm for AI-native dev workflows.',
+  metadataBase: new URL('https://use.dev'),
+  openGraph: {
+    title: 'use.dev — Universal installer for AI-native devs',
+    description:
+      "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
+    siteName: 'use.dev',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'use.dev — Universal installer for AI-native devs',
+    description:
+      "Install any MCP server, CLI, or SDK in one command. Copy any developer's setup instantly.",
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }): React.JSX.Element {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className={cn('dark', GeistSans.variable, GeistMono.variable)}>
+      <body className="min-h-screen font-sans">
         {children}
         <Analytics />
       </body>
