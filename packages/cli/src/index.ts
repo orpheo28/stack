@@ -9,6 +9,12 @@ import { createListCommand } from './commands/list.js'
 import { createRollbackCommand } from './commands/rollback.js'
 import { createRemoveCommand } from './commands/remove.js'
 import { createLoginCommand, createLogoutCommand, createWhoamiCommand } from './commands/auth.js'
+import chalk from 'chalk'
+import { createImportCommand } from './commands/import.js'
+import { StackError } from './types/errors.js'
+import { createBrowseCommand } from './commands/browse.js'
+import { createInitCommand } from './commands/init.js'
+import { createConvertCommand } from './commands/convert.js'
 
 const MINIMUM_NODE_MAJOR = 20
 
@@ -65,6 +71,10 @@ export function createProgram(): Command {
   program.addCommand(createListCommand())
   program.addCommand(createRollbackCommand())
   program.addCommand(createRemoveCommand())
+  program.addCommand(createImportCommand())
+  program.addCommand(createBrowseCommand())
+  program.addCommand(createInitCommand())
+  program.addCommand(createConvertCommand())
   program.addCommand(createLoginCommand())
   program.addCommand(createLogoutCommand())
   program.addCommand(createWhoamiCommand())
@@ -72,7 +82,29 @@ export function createProgram(): Command {
   return program
 }
 
+function handleError(error: unknown): never {
+  if (error instanceof StackError) {
+    console.error(chalk.red(`\n${error.message}`))
+    if (error.suggestion !== '') {
+      console.error(chalk.yellow(`  ${error.suggestion}`))
+    }
+    process.exit(1)
+  }
+
+  if (error instanceof Error) {
+    console.error(chalk.red(`\nError: ${error.message}`))
+    process.exit(1)
+  }
+
+  console.error(chalk.red(`\nUnknown error: ${String(error)}`))
+  process.exit(1)
+}
+
 function main(): void {
+  // Catch unhandled rejections (async errors from Commander actions)
+  process.on('uncaughtException', handleError)
+  process.on('unhandledRejection', handleError)
+
   const program = createProgram()
   program.parse(process.argv)
 }

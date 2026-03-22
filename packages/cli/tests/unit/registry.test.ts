@@ -2,8 +2,30 @@ import { describe, it, expect } from 'vitest'
 import { REGISTRY, findToolLocal, findSimilarToolsLocal } from '../../src/registry/tools.js'
 
 describe('REGISTRY', () => {
-  it('should have 42 tools defined', () => {
-    expect(REGISTRY.size).toBe(42)
+  it('should have at least 120 tools defined', () => {
+    expect(REGISTRY.size).toBeGreaterThanOrEqual(120)
+  })
+
+  it('should have description for every tool', () => {
+    for (const [name, tool] of REGISTRY) {
+      expect(tool.description, `${name} should have description`).toBeDefined()
+      expect(tool.description.length, `${name} description should not be empty`).toBeGreaterThan(0)
+    }
+  })
+
+  it('should have category for every tool', () => {
+    for (const [name, tool] of REGISTRY) {
+      expect(tool.category, `${name} should have category`).toBeDefined()
+    }
+  })
+
+  it('should have installMode "both" for tools with skillFile', () => {
+    for (const [name, tool] of REGISTRY) {
+      if (tool.skillFile !== undefined) {
+        expect(tool.installMode, `${name} with skillFile should have installMode`).toBe('both')
+        expect(tool.cliCommand, `${name} with skillFile should have cliCommand`).toBeDefined()
+      }
+    }
   })
 
   it('should find stripe by name', () => {

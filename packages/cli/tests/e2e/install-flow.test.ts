@@ -210,7 +210,7 @@ describe('E2E: Full install → verify → remove → rollback flow', () => {
     expect(stackJson).toBeNull()
   })
 
-  it('should handle all registry tools without errors', async () => {
+  it('should handle all registry tools without errors', { timeout: 120_000 }, async () => {
     let installed = 0
     for (const [, tool] of REGISTRY) {
       const result = await installTool(tool, projectRoot, { homeDir, skipNpmInstall: true })

@@ -32,11 +32,11 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const TYPE_BADGE: Record<string, { bg: string; text: string; border: string }> = {
-  mcp: { bg: 'bg-violet-500/10', text: 'text-violet-400', border: 'border-violet-500/20' },
-  sdk: { bg: 'bg-blue-500/10', text: 'text-blue-400', border: 'border-blue-500/20' },
-  cli: { bg: 'bg-emerald-500/10', text: 'text-emerald-400', border: 'border-emerald-500/20' },
-  api: { bg: 'bg-amber-500/10', text: 'text-amber-400', border: 'border-amber-500/20' },
-  config: { bg: 'bg-zinc-500/10', text: 'text-zinc-400', border: 'border-zinc-500/20' },
+  mcp: { bg: 'bg-violet-500/8', text: 'text-violet-600', border: 'border-violet-500/15' },
+  sdk: { bg: 'bg-blue-500/8', text: 'text-blue-600', border: 'border-blue-500/15' },
+  cli: { bg: 'bg-emerald-500/8', text: 'text-emerald-600', border: 'border-emerald-500/15' },
+  api: { bg: 'bg-amber-500/8', text: 'text-amber-600', border: 'border-amber-500/15' },
+  config: { bg: 'bg-gray-500/8', text: 'text-gray-600', border: 'border-gray-500/15' },
 }
 
 export const dynamic = 'force-dynamic'
@@ -70,14 +70,11 @@ export default async function HandlePage({ params }: Props) {
 
   return (
     <main className="min-h-screen">
-      {/* Background glow */}
-      <div className="fixed inset-0 -z-10 bg-[radial-gradient(ellipse_60%_40%_at_50%_-10%,hsla(260,60%,20%,0.3),transparent)]" />
-
       <div className="mx-auto max-w-2xl px-6 py-20">
         {/* Back link */}
         <a
           href="/"
-          className="inline-flex items-center gap-1.5 text-xs text-zinc-600 hover:text-zinc-400 transition-colors mb-12"
+          className="inline-flex items-center gap-1.5 text-xs text-[#A3A3A3] hover:text-[#171717] transition-colors mb-12"
         >
           <svg
             width="14"
@@ -101,27 +98,27 @@ export default async function HandlePage({ params }: Props) {
             <img
               src={data.avatar_url}
               alt=""
-              className="w-20 h-20 rounded-full border-2 border-zinc-800 shrink-0 shadow-xl shadow-black/20"
+              className="w-16 h-16 rounded-full border border-[#E5E5E5] shrink-0"
             />
           ) : (
-            <div className="w-20 h-20 rounded-full bg-zinc-800 border-2 border-zinc-700 shrink-0" />
+            <div className="w-16 h-16 rounded-full bg-[#F5F5F5] border border-[#E5E5E5] shrink-0" />
           )}
           <div className="flex-1 min-w-0 pt-1">
-            <h1 className="text-2xl font-bold text-white truncate">
+            <h1 className="text-xl font-semibold text-[#0A0A0A] truncate">
               {data.display_name ?? `@${data.handle}`}
             </h1>
-            <p className="text-zinc-500 text-sm mt-0.5 font-mono">@{data.handle}</p>
+            <p className="text-[#737373] text-sm mt-0.5 font-mono">@{data.handle}</p>
             {data.location !== null && (
-              <p className="text-zinc-600 text-sm mt-1">{data.location}</p>
+              <p className="text-[#A3A3A3] text-sm mt-1">{data.location}</p>
             )}
             {data.bio !== null && (
-              <p className="text-zinc-400 text-sm mt-2 leading-relaxed">{data.bio}</p>
+              <p className="text-[#737373] text-sm mt-2 leading-relaxed">{data.bio}</p>
             )}
           </div>
         </div>
 
         {/* Stats bar */}
-        <div className="grid grid-cols-3 gap-px rounded-xl overflow-hidden border border-zinc-800 mb-8 bg-zinc-800">
+        <div className="grid grid-cols-3 gap-px rounded-xl overflow-hidden border border-[#E5E5E5] mb-8 bg-[#E5E5E5]">
           <StatCell value={data.copies_total.toLocaleString()} label="total copies" />
           <StatCell value={data.copies_this_week.toLocaleString()} label="this week" />
           <StatCell
@@ -137,14 +134,14 @@ export default async function HandlePage({ params }: Props) {
         </div>
 
         {/* Copy command */}
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950/50 p-5 mb-8 backdrop-blur-sm">
-          <p className="text-[11px] text-zinc-600 uppercase tracking-widest font-medium mb-3">
+        <div className="rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] p-5 mb-8">
+          <p className="text-[11px] text-[#A3A3A3] uppercase tracking-widest font-medium mb-3">
             Copy this setup
           </p>
           <div className="flex items-center gap-3">
-            <div className="flex-1 font-mono text-sm rounded-lg bg-zinc-900 border border-zinc-800 px-4 py-3 overflow-x-auto">
-              <span className="text-zinc-600 select-none">$ </span>
-              <span className="text-emerald-400">{command}</span>
+            <div className="flex-1 font-mono text-sm rounded-lg bg-white border border-[#E5E5E5] px-4 py-3 overflow-x-auto">
+              <span className="text-[#A3A3A3] select-none">$ </span>
+              <span className="text-[#0A0A0A]">{command}</span>
             </div>
             <CopyButton command={command} />
           </div>
@@ -153,27 +150,29 @@ export default async function HandlePage({ params }: Props) {
         {/* Tools grid */}
         {toolEntries.length > 0 && (
           <section className="mb-8">
-            <h2 className="text-sm font-medium text-zinc-400 mb-4">
+            <h2 className="text-sm font-medium text-[#737373] uppercase tracking-wider mb-4">
               Stack
-              <span className="ml-2 text-zinc-600">{toolEntries.length} tools</span>
+              <span className="ml-2 text-[#A3A3A3] normal-case tracking-normal">
+                {toolEntries.length} tools
+              </span>
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {toolEntries.map(([name, cfg]) => {
                 const fallback = {
-                  bg: 'bg-zinc-500/10',
-                  text: 'text-zinc-400',
-                  border: 'border-zinc-500/20',
+                  bg: 'bg-gray-500/8',
+                  text: 'text-gray-600',
+                  border: 'border-gray-500/15',
                 }
                 const badge = TYPE_BADGE[cfg.type] ?? fallback
                 return (
                   <div
                     key={name}
-                    className="flex items-center justify-between rounded-lg border border-zinc-800/50 bg-zinc-900/30 px-4 py-3 hover:bg-zinc-900/60 transition-colors"
+                    className="flex items-center justify-between rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-3 hover:border-[#D4D4D4] transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className="font-mono text-sm text-zinc-200 truncate">{name}</span>
+                      <span className="font-mono text-sm text-[#0A0A0A] truncate">{name}</span>
                       {cfg.version !== undefined && (
-                        <span className="text-[11px] text-zinc-700 font-mono">{cfg.version}</span>
+                        <span className="text-[11px] text-[#A3A3A3] font-mono">{cfg.version}</span>
                       )}
                     </div>
                     <span
@@ -191,14 +190,16 @@ export default async function HandlePage({ params }: Props) {
         {/* CLAUDE.md preview */}
         {claudeMdPreview.length > 0 && (
           <section>
-            <h2 className="text-sm font-medium text-zinc-400 mb-4">
+            <h2 className="text-sm font-medium text-[#737373] uppercase tracking-wider mb-4">
               CLAUDE.md
-              <span className="ml-2 text-zinc-600">{claudeMdLines.length} lines</span>
+              <span className="ml-2 text-[#A3A3A3] normal-case tracking-normal">
+                {claudeMdLines.length} lines
+              </span>
             </h2>
-            <pre className="rounded-xl border border-zinc-800/50 bg-zinc-900/30 px-5 py-4 text-xs text-zinc-500 font-mono leading-relaxed whitespace-pre-wrap overflow-hidden">
+            <pre className="rounded-xl border border-[#E5E5E5] bg-[#FAFAFA] px-5 py-4 text-xs text-[#737373] font-mono leading-relaxed whitespace-pre-wrap overflow-hidden">
               {claudeMdPreview}
               {hasMoreClaudeMd && (
-                <span className="text-zinc-700 block mt-2">
+                <span className="text-[#A3A3A3] block mt-2">
                   {'···'} {claudeMdLines.length - 8} more lines
                 </span>
               )}
@@ -212,9 +213,9 @@ export default async function HandlePage({ params }: Props) {
 
 function StatCell({ value, label }: { value: string; label: string }) {
   return (
-    <div className="bg-zinc-950/80 px-4 py-4 text-center">
-      <p className="text-xl font-bold text-white tabular-nums font-mono">{value}</p>
-      <p className="text-[11px] text-zinc-600 mt-0.5">{label}</p>
+    <div className="bg-white px-4 py-4 text-center">
+      <p className="text-xl font-bold text-[#0A0A0A] tabular-nums font-mono">{value}</p>
+      <p className="text-[11px] text-[#A3A3A3] mt-0.5">{label}</p>
     </div>
   )
 }

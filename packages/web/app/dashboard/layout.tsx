@@ -8,10 +8,10 @@ export const metadata: Metadata = {
 }
 
 const NAV = [
-  { href: '/dashboard', label: 'Overview', icon: '⬡' },
-  { href: '/dashboard/analytics', label: 'Analytics', icon: '◈' },
-  { href: '/dashboard/settings', label: 'Settings', icon: '⚙' },
-  { href: '/dashboard/billing', label: 'Billing', icon: '◇' },
+  { href: '/dashboard', label: 'Overview' },
+  { href: '/dashboard/analytics', label: 'Analytics' },
+  { href: '/dashboard/settings', label: 'Settings' },
+  { href: '/dashboard/billing', label: 'Billing' },
 ] as const
 
 export default async function DashboardLayout({
@@ -40,30 +40,30 @@ export default async function DashboardLayout({
   const plan = (handle?.subscription_status as string | undefined) ?? 'free'
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-zinc-100 flex">
+    <div className="min-h-screen flex">
       {/* Sidebar */}
-      <aside className="w-56 border-r border-zinc-800 flex flex-col flex-shrink-0">
-        <div className="p-5 border-b border-zinc-800">
-          <Link href="/" className="text-sm font-bold tracking-tight text-zinc-100">
+      <aside className="w-56 bg-[#FAFAFA] border-r border-[#E5E5E5] flex flex-col flex-shrink-0">
+        <div className="p-5 border-b border-[#E5E5E5]">
+          <Link href="/" className="text-sm font-semibold tracking-tight text-[#0A0A0A]">
             stack
           </Link>
         </div>
 
         {/* User info */}
-        <div className="px-5 py-4 border-b border-zinc-800">
+        <div className="px-5 py-4 border-b border-[#E5E5E5]">
           {handle?.avatar_url !== undefined && handle.avatar_url !== null ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={handle.avatar_url} alt={displayName} className="w-8 h-8 rounded-full mb-2" />
           ) : (
-            <div className="w-8 h-8 rounded-full bg-zinc-700 mb-2 flex items-center justify-center text-xs font-bold">
+            <div className="w-8 h-8 rounded-full bg-[#E5E5E5] mb-2 flex items-center justify-center text-xs font-bold text-[#737373]">
               {displayName[0]?.toUpperCase() ?? '?'}
             </div>
           )}
-          <p className="text-sm font-medium text-zinc-100 truncate">{displayName}</p>
-          {handle !== null && <p className="text-xs text-zinc-500 truncate">@{handle.handle}</p>}
+          <p className="text-sm font-medium text-[#0A0A0A] truncate">{displayName}</p>
+          {handle !== null && <p className="text-xs text-[#737373] truncate">@{handle.handle}</p>}
           <span
             className={`inline-block mt-1.5 text-xs px-1.5 py-0.5 rounded font-medium ${
-              plan === 'pro' ? 'bg-violet-500/20 text-violet-300' : 'bg-zinc-800 text-zinc-400'
+              plan === 'pro' ? 'bg-violet-500/10 text-violet-600' : 'bg-[#F5F5F5] text-[#737373]'
             }`}
           >
             {plan === 'pro' ? 'Pro' : 'Free'}
@@ -76,20 +76,19 @@ export default async function DashboardLayout({
             <Link
               key={item.href}
               href={item.href}
-              className="flex items-center gap-3 px-5 py-2.5 text-sm text-zinc-400 hover:text-zinc-100 hover:bg-zinc-900 transition-colors"
+              className="flex items-center px-5 py-2.5 text-sm text-[#737373] hover:text-[#0A0A0A] hover:bg-white transition-colors"
             >
-              <span className="text-base leading-none">{item.icon}</span>
               {item.label}
             </Link>
           ))}
         </nav>
 
         {/* Footer */}
-        <div className="p-5 border-t border-zinc-800">
+        <div className="p-5 border-t border-[#E5E5E5]">
           {handle !== null && (
             <Link
               href={`/@${handle.handle}`}
-              className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+              className="text-xs text-[#A3A3A3] hover:text-[#0A0A0A] transition-colors"
             >
               View public profile →
             </Link>
@@ -98,7 +97,7 @@ export default async function DashboardLayout({
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="flex-1 overflow-auto bg-white">{children}</main>
     </div>
   )
 }

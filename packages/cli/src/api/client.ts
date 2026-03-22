@@ -5,7 +5,7 @@ import { getValidToken, refreshAccessToken } from '../utils/auth-token.js'
 // --- Zod Schemas for API response validation ---
 
 const ArtifactConfigSchema = z.object({
-  type: z.enum(['mcp', 'cli', 'sdk', 'api', 'config']),
+  type: z.enum(['mcp', 'cli', 'sdk', 'api', 'config', 'skill']),
   version: z.string(),
   source: z.string(),
   config: z.record(z.unknown()).optional(),

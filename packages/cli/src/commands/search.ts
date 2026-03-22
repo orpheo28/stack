@@ -3,6 +3,14 @@ import chalk from 'chalk'
 import { searchTools } from '../api/client.js'
 import { findSimilarTools } from '../registry/tools.js'
 
+const TYPE_BADGES: Record<string, string> = {
+  mcp: chalk.magenta('mcp'),
+  sdk: chalk.blue('sdk'),
+  cli: chalk.green('cli'),
+  api: chalk.yellow('api'),
+  config: chalk.cyan('config'),
+}
+
 export function createSearchCommand(): Command {
   return new Command('search')
     .argument('<query>', 'Search query')
@@ -11,11 +19,15 @@ export function createSearchCommand(): Command {
       // Search local + remote registry
       const matches = await findSimilarTools(query)
       if (matches.length > 0) {
-        console.log(chalk.cyan('\nRegistry matches:'))
+        console.log()
         for (const tool of matches) {
-          console.log(`  ${chalk.bold(tool.name)} — ${tool.displayName} (${tool.type})`)
-          console.log(`    ${chalk.dim(`stack install ${tool.name}`)}`)
+          const badge = TYPE_BADGES[tool.type] ?? tool.type
+          console.log(`  ${chalk.bold(tool.name)} ${chalk.dim('·')} ${badge}`)
+          console.log(`  ${chalk.dim(tool.description)}`)
+          console.log(`  ${chalk.dim('$')} stack install ${tool.name}`)
+          console.log()
         }
+        console.log(chalk.dim(`${matches.length.toString()} results`))
       }
 
       // Also search the API for tools not in cache
@@ -34,7 +46,7 @@ export function createSearchCommand(): Command {
       }
 
       if (matches.length === 0) {
-        console.log(chalk.yellow(`No tools found for "${query}"`))
+        console.log(chalk.yellow(`\nNo tools found for "${query}". Try: stack browse`))
       }
     })
 }

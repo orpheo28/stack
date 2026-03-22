@@ -1,4 +1,4 @@
-export type ArtifactType = 'mcp' | 'cli' | 'sdk' | 'api' | 'config'
+export type ArtifactType = 'mcp' | 'cli' | 'sdk' | 'api' | 'config' | 'skill'
 
 export interface Artifact {
   readonly name: string

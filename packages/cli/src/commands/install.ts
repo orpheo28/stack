@@ -12,6 +12,7 @@ import { writeEnvVars } from '../writers/env.js'
 import { writeSdkSetup } from '../writers/sdk.js'
 import { writeCliTool } from '../writers/cli-tool.js'
 import { writeClaudeMd, writeCursorRules, writeWindsurfrules } from '../writers/config.js'
+import { writeSkillFile, generateSkillFromMcp } from '../writers/skill.js'
 import { fetchHandleManifest, recordCopy, recordInstall } from '../api/client.js'
 import { addToolToStackJson, readStackJson } from '../utils/stack-json.js'
 import { StackError } from '../types/errors.js'
@@ -29,6 +30,7 @@ export interface InstallResult {
   readonly envFilePath: string | null
   readonly sdkFilePath: string | null
   readonly cliBinPath: string | null
+  readonly skillPath: string | null
   readonly durationMs: number
   readonly missingEnvHint?: boolean
 }
@@ -102,6 +104,7 @@ export interface InstallOptions {
   readonly homeDir?: string
   readonly skipNpmInstall?: boolean
   readonly dryRun?: boolean
+  readonly mode?: 'mcp' | 'skill'
 }
 
 export async function installTool(
@@ -134,14 +137,23 @@ export async function installTool(
 
   const ctx = await detectContext(cwd, homeDir)
 
+  const useSkillMode =
+    options.mode === 'skill' && (tool.skillFile !== undefined || tool.mcpConfig !== undefined)
+
   // Dry run: return what would happen without modifying anything
   if (options.dryRun === true) {
     return {
       toolName: tool.name,
       displayName: tool.displayName,
-      mcpResults: ctx.clients
-        .filter(() => tool.mcpConfig !== undefined)
-        .map((c) => ({ client: c.name, configPath: c.configPath, action: 'would-add' as const })),
+      mcpResults: useSkillMode
+        ? []
+        : ctx.clients
+            .filter(() => tool.mcpConfig !== undefined)
+            .map((c) => ({
+              client: c.name,
+              configPath: c.configPath,
+              action: 'would-add' as const,
+            })),
       envFilePath:
         tool.envVars !== undefined && tool.envVars.length > 0 ? (ctx.envFilePath ?? '.env') : null,
       sdkFilePath:
@@ -149,6 +161,7 @@ export async function installTool(
           ? `src/lib/${tool.name}.ts`
           : null,
       cliBinPath: tool.type === 'cli' ? `~/.stack/bin/${tool.name}` : null,
+      skillPath: useSkillMode ? `~/.claude/skills/${tool.name}/SKILL.md` : null,
       durationMs: Date.now() - start,
     }
   }
@@ -157,14 +170,26 @@ export async function installTool(
   let envFilePath: string | null = null
   let sdkFilePath: string | null = null
   let cliBinPath: string | null = null
+  let skillPath: string | null = null
 
-  // 1. MCP config
-  if (tool.mcpConfig !== undefined && ctx.clients.length > 0) {
-    const results = await writeMcpConfig(ctx.clients, tool.name, tool.mcpConfig, cwd, homeDir)
-    mcpResults.push(...results)
+  // Skill mode: write skill file instead of MCP config
+  if (useSkillMode) {
+    // Use hardcoded skillFile if available, otherwise auto-generate from mcpConfig
+    const content =
+      tool.skillFile ?? (tool.mcpConfig !== undefined ? generateSkillFromMcp(tool) : '')
+    if (content !== '') {
+      const result = await writeSkillFile(tool.name, content, homeDir)
+      skillPath = result.skillPath
+    }
+  } else {
+    // 1. MCP config (skipped in skill mode)
+    if (tool.mcpConfig !== undefined && ctx.clients.length > 0) {
+      const results = await writeMcpConfig(ctx.clients, tool.name, tool.mcpConfig, cwd, homeDir)
+      mcpResults.push(...results)
+    }
   }
 
-  // 2. Env vars
+  // 2. Env vars (always, both modes need API keys)
   if (tool.envVars !== undefined && tool.envVars.length > 0) {
     envFilePath = await writeEnvVars(ctx.envFilePath, cwd, tool.envVars, cwd, homeDir)
   }
@@ -224,6 +249,7 @@ export async function installTool(
     envFilePath,
     sdkFilePath,
     cliBinPath,
+    skillPath,
     durationMs,
     missingEnvHint,
   }
@@ -261,6 +287,7 @@ async function installFromStackJson(cwd: string): Promise<void> {
         envFilePath: null,
         sdkFilePath: null,
         cliBinPath: null,
+        skillPath: null,
         durationMs: 0,
       } satisfies InstallResult
     }),
@@ -341,6 +368,7 @@ async function installHandle(handle: string, dryRun?: boolean): Promise<void> {
       envFilePath: null,
       sdkFilePath: null,
       cliBinPath: null,
+      skillPath: null,
       durationMs: 0,
     } satisfies InstallResult
   })
@@ -377,30 +405,64 @@ function formatResult(result: InstallResult): string {
   const lines: string[] = []
   const duration = (result.durationMs / 1000).toFixed(1)
 
+  lines.push(chalk.green(`\n✓ ${result.displayName} installed in ${duration}s`))
+
+  // What changed
+  lines.push(chalk.bold('\n  What changed:'))
+
   for (const mcp of result.mcpResults) {
-    const action = mcp.action === 'added' ? chalk.green('added') : chalk.yellow(mcp.action)
-    lines.push(`  ${chalk.dim('MCP')} ${action} in ${mcp.client} → ${chalk.dim(mcp.configPath)}`)
+    if (mcp.action === 'added') {
+      lines.push(`    ${chalk.green('+')} MCP server added to ${mcp.client}`)
+    } else {
+      lines.push(`    ${chalk.yellow('~')} MCP server ${mcp.action} in ${mcp.client}`)
+    }
   }
 
   if (result.envFilePath !== null) {
-    lines.push(`  ${chalk.dim('ENV')} configured → ${chalk.dim(result.envFilePath)}`)
+    lines.push(`    ${chalk.green('+')} Environment variables added to ${result.envFilePath}`)
   }
 
   if (result.sdkFilePath !== null) {
-    lines.push(`  ${chalk.dim('SDK')} generated → ${chalk.dim(result.sdkFilePath)}`)
+    lines.push(`    ${chalk.green('+')} TypeScript client generated at ${result.sdkFilePath}`)
   }
 
   if (result.cliBinPath !== null) {
-    lines.push(`  ${chalk.dim('CLI')} installed → ${chalk.dim(result.cliBinPath)}`)
+    lines.push(`    ${chalk.green('+')} CLI binary installed at ${result.cliBinPath}`)
   }
 
-  lines.push('')
-  lines.push(chalk.green(`✓ ${result.displayName} installed in ${duration}s`))
+  if (result.skillPath !== null) {
+    lines.push(`    ${chalk.green('+')} Skill installed at ${result.skillPath}`)
+  }
+
+  // Next steps
+  const steps: string[] = []
+
+  if (result.envFilePath !== null) {
+    steps.push(`Add your API keys in ${chalk.cyan(result.envFilePath)}`)
+  }
+
+  if (result.skillPath !== null) {
+    steps.push(`Skill loaded on-demand — just ask your AI to use ${result.displayName}`)
+  } else if (result.mcpResults.length > 0) {
+    steps.push(`Restart your AI client to activate the MCP server`)
+    steps.push(`Try asking your AI: ${chalk.dim(`"Use ${result.displayName} to..."`)}`)
+  }
+
+  if (result.sdkFilePath !== null) {
+    steps.push(`Import the client: ${chalk.dim(`import { ... } from '${result.sdkFilePath}'`)}`)
+  }
+
+  if (steps.length > 0) {
+    lines.push(chalk.bold('\n  Next steps:'))
+    steps.forEach((step, i) => {
+      lines.push(`    ${(i + 1).toString()}. ${step}`)
+    })
+  }
 
   if (result.missingEnvHint === true) {
     lines.push(
       chalk.yellow(
-        `\n⚠️  This tool may require API keys. Check the tool's documentation for required environment variables.`,
+        `\n  ⚠️  This tool may need API keys. Check the documentation for required env vars.`,
       ),
     )
   }
@@ -408,59 +470,90 @@ function formatResult(result: InstallResult): string {
   return lines.join('\n')
 }
 
+function resolveInstallMode(
+  tool: ToolDefinition,
+  explicitMode?: 'mcp' | 'skill',
+): 'mcp' | 'skill' | undefined {
+  // If user specified a flag, use it
+  if (explicitMode !== undefined) return explicitMode
+
+  // Skill is the default for any MCP tool — zero overhead, on-demand loading
+  // Use --mcp to force traditional MCP server mode
+  if (tool.mcpConfig !== undefined) return 'skill'
+
+  return undefined
+}
+
 export function createInstallCommand(): Command {
   return new Command('install')
     .argument('[name]', 'Tool name to install (or @handle)')
     .option('--dry-run', 'Preview changes without modifying any files')
+    .option('--skill', 'Install as a skill (CLI + on-demand loading)')
+    .option('--mcp', 'Install as an MCP server (traditional)')
     .description('Install a tool or copy a developer setup')
-    .action(async (name: string | undefined, opts: { dryRun?: boolean }) => {
-      if (name === undefined) {
-        await installFromStackJson(process.cwd())
-        return
-      }
+    .action(
+      async (
+        name: string | undefined,
+        opts: { dryRun?: boolean; skill?: boolean; mcp?: boolean },
+      ) => {
+        if (name === undefined) {
+          await installFromStackJson(process.cwd())
+          return
+        }
 
-      if (name.startsWith('@')) {
-        await installHandle(name, opts.dryRun)
-        return
-      }
+        if (name.startsWith('@')) {
+          await installHandle(name, opts.dryRun)
+          return
+        }
 
-      const tool = await findTool(name)
+        const tool = await findTool(name)
 
-      if (tool === undefined) {
-        const similar = await findSimilarTools(name)
-        const suggestion =
-          similar.length > 0
-            ? `Did you mean: ${similar.map((t) => chalk.cyan(t.name)).join(', ')}?`
-            : 'Run "stack search" to find available tools.'
+        if (tool === undefined) {
+          const similar = await findSimilarTools(name)
+          const suggestion =
+            similar.length > 0
+              ? `Did you mean: ${similar.map((t) => chalk.cyan(t.name)).join(', ')}?`
+              : 'Run "stack search" to find available tools.'
 
-        throw new StackError('STACK_002', suggestion)
-      }
+          throw new StackError('STACK_002', suggestion)
+        }
 
-      // Explicit --dry-run: show preview and stop
-      if (opts.dryRun === true) {
-        const result = await installTool(tool, process.cwd(), { dryRun: true })
-        console.log(formatResult(result))
-        return
-      }
+        // Resolve install mode
+        const explicitMode =
+          opts.skill === true
+            ? ('skill' as const)
+            : opts.mcp === true
+              ? ('mcp' as const)
+              : undefined
+        const mode = resolveInstallMode(tool, explicitMode)
 
-      // Guarantee 3: First run preview mode
-      if (isFirstRun()) {
-        const proceed = await showPreview(tool, process.cwd())
-        if (!proceed) return
-      }
+        // Explicit --dry-run: show preview and stop
+        if (opts.dryRun === true) {
+          const result = await installTool(tool, process.cwd(), { dryRun: true, mode })
+          console.log(formatResult(result))
+          return
+        }
 
-      const spinner = ora(`Installing ${tool.displayName}...`).start()
+        // Guarantee 3: First run preview mode
+        if (isFirstRun()) {
+          const proceed = await showPreview(tool, process.cwd())
+          if (!proceed) return
+        }
 
-      try {
-        const result = await installTool(tool, process.cwd())
-        spinner.stop()
-        console.log(formatResult(result))
-        void recordInstall(tool.name)
-      } catch (error) {
-        spinner.fail(`Failed to install ${tool.displayName}`)
-        if (error instanceof StackError) throw error
-        const message = error instanceof Error ? error.message : String(error)
-        throw new StackError('STACK_004', `Installation failed: ${message}`)
-      }
-    })
+        const modeLabel = mode === 'skill' ? ' (skill)' : mode === 'mcp' ? ' (MCP)' : ''
+        const spinner = ora(`Installing ${tool.displayName}${modeLabel}...`).start()
+
+        try {
+          const result = await installTool(tool, process.cwd(), { mode })
+          spinner.stop()
+          console.log(formatResult(result))
+          void recordInstall(tool.name)
+        } catch (error) {
+          spinner.fail(`Failed to install ${tool.displayName}`)
+          if (error instanceof StackError) throw error
+          const message = error instanceof Error ? error.message : String(error)
+          throw new StackError('STACK_004', `Installation failed: ${message}`)
+        }
+      },
+    )
 }

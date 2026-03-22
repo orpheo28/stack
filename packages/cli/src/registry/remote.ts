@@ -125,6 +125,7 @@ export function remoteToToolDefinition(entry: RemoteToolEntry): ToolDefinition {
   const base = {
     name: entry.name,
     displayName: entry.displayName,
+    description: entry.description,
     type,
     source: entry.source,
   }

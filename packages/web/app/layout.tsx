@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }): React.JSX.Element {
   return (
-    <html lang="en" className={cn('dark', GeistSans.variable, GeistMono.variable)}>
+    <html lang="en" className={cn(GeistSans.variable, GeistMono.variable)}>
       <body className="min-h-screen font-sans">
         {children}
         <Analytics />

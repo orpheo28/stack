@@ -71,27 +71,27 @@ export default function SettingsPage(): React.JSX.Element {
   return (
     <div className="p-8 max-w-xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-zinc-100">Settings</h1>
-        <p className="text-sm text-zinc-500 mt-1">Edit your public profile</p>
+        <h1 className="text-2xl font-semibold text-[#0A0A0A]">Settings</h1>
+        <p className="text-sm text-[#737373] mt-1">Edit your public profile</p>
       </div>
 
       {profile === null ? (
-        <div className="text-zinc-500 text-sm">Loading...</div>
+        <div className="text-[#A3A3A3] text-sm">Loading...</div>
       ) : (
         <div className="space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-6 space-y-5">
+          <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-6 space-y-5">
             <div>
-              <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-medium text-[#737373] uppercase tracking-wider mb-2">
                 Handle
               </label>
-              <p className="text-sm text-zinc-300 font-mono bg-zinc-800 rounded px-3 py-2">
+              <p className="text-sm text-[#0A0A0A] font-mono bg-[#F5F5F5] rounded px-3 py-2">
                 @{profile.handle}
               </p>
-              <p className="text-xs text-zinc-600 mt-1">Handle cannot be changed</p>
+              <p className="text-xs text-[#A3A3A3] mt-1">Handle cannot be changed</p>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-medium text-[#737373] uppercase tracking-wider mb-2">
                 Display name
               </label>
               <input
@@ -100,12 +100,12 @@ export default function SettingsPage(): React.JSX.Element {
                 onChange={(e) => setDisplayName(e.target.value)}
                 maxLength={64}
                 placeholder="Your name"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                className="w-full bg-white border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0A0A0A] placeholder-[#A3A3A3] focus:outline-none focus:border-[#171717]"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-medium text-[#737373] uppercase tracking-wider mb-2">
                 Bio
               </label>
               <textarea
@@ -114,13 +114,13 @@ export default function SettingsPage(): React.JSX.Element {
                 maxLength={160}
                 rows={3}
                 placeholder="A short description"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500 resize-none"
+                className="w-full bg-white border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0A0A0A] placeholder-[#A3A3A3] focus:outline-none focus:border-[#171717] resize-none"
               />
-              <p className="text-xs text-zinc-600 mt-1">{bio.length}/160</p>
+              <p className="text-xs text-[#A3A3A3] mt-1">{bio.length}/160</p>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+              <label className="block text-xs font-medium text-[#737373] uppercase tracking-wider mb-2">
                 Location
               </label>
               <input
@@ -129,29 +129,29 @@ export default function SettingsPage(): React.JSX.Element {
                 onChange={(e) => setLocation(e.target.value)}
                 maxLength={64}
                 placeholder="City, Country"
-                className="w-full bg-zinc-800 border border-zinc-700 rounded px-3 py-2 text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-zinc-500"
+                className="w-full bg-white border border-[#E5E5E5] rounded-lg px-3.5 py-2.5 text-sm text-[#0A0A0A] placeholder-[#A3A3A3] focus:outline-none focus:border-[#171717]"
               />
             </div>
 
             {profile.github_username !== null && (
               <div>
-                <label className="block text-xs font-medium text-zinc-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-medium text-[#737373] uppercase tracking-wider mb-2">
                   GitHub
                 </label>
-                <p className="text-sm text-zinc-400 font-mono">@{profile.github_username}</p>
-                <p className="text-xs text-zinc-600 mt-1">Linked via OAuth — cannot be changed</p>
+                <p className="text-sm text-[#737373] font-mono">@{profile.github_username}</p>
+                <p className="text-xs text-[#A3A3A3] mt-1">Linked via OAuth — cannot be changed</p>
               </div>
             )}
           </div>
 
-          {error !== null && <p className="text-sm text-red-400">{error}</p>}
+          {error !== null && <p className="text-sm text-red-600">{error}</p>}
 
           <button
             onClick={() => void handleSave()}
             disabled={saving}
-            className="px-5 py-2 bg-zinc-100 text-zinc-900 rounded text-sm font-semibold hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-5 py-2.5 bg-[#171717] text-white rounded-lg text-sm font-medium hover:bg-[#262626] transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            {saved ? '✓ Saved' : saving ? 'Saving...' : 'Save changes'}
+            {saved ? 'Saved' : saving ? 'Saving...' : 'Save changes'}
           </button>
         </div>
       )}

@@ -23,12 +23,12 @@ function CLIAuthInner() {
 
   if (port === null || state === null) {
     return (
-      <main className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-        <div className="max-w-sm w-full px-4 text-center">
-          <h1 className="text-2xl font-bold mb-4">Invalid Request</h1>
-          <p className="text-zinc-400 text-sm">
-            Missing parameters. Please run <code className="text-zinc-200">stack login</code> from
-            your terminal.
+      <main className="min-h-screen flex items-center justify-center">
+        <div className="max-w-sm w-full px-6 text-center">
+          <h1 className="text-2xl font-semibold text-[#0A0A0A] mb-4">Invalid Request</h1>
+          <p className="text-[#737373] text-sm">
+            Missing parameters. Please run{' '}
+            <code className="text-[#0A0A0A] font-mono">stack login</code> from your terminal.
           </p>
         </div>
       </main>
@@ -36,10 +36,10 @@ function CLIAuthInner() {
   }
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-      <div className="max-w-sm w-full px-4 text-center">
-        <h1 className="text-2xl font-bold mb-4">Signing in...</h1>
-        <p className="text-zinc-400 text-sm">Redirecting to GitHub for authentication.</p>
+    <main className="min-h-screen flex items-center justify-center">
+      <div className="max-w-sm w-full px-6 text-center">
+        <h1 className="text-2xl font-semibold text-[#0A0A0A] mb-4">Signing in...</h1>
+        <p className="text-[#737373] text-sm">Redirecting to GitHub for authentication.</p>
       </div>
     </main>
   )
@@ -49,9 +49,9 @@ export default function CLIAuthPage() {
   return (
     <Suspense
       fallback={
-        <main className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-          <div className="max-w-sm w-full px-4 text-center">
-            <p className="text-zinc-400 text-sm">Loading...</p>
+        <main className="min-h-screen flex items-center justify-center">
+          <div className="max-w-sm w-full px-6 text-center">
+            <p className="text-[#737373] text-sm">Loading...</p>
           </div>
         </main>
       }

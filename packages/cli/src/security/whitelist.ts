@@ -34,6 +34,9 @@ function buildWhitelist(home: string, projectRoot: string): readonly WhitelistEn
     // Stack internal directory (prefix)
     { path: join(home, '.stack') + '/', mode: 'prefix' },
 
+    // Claude Code skills directory (prefix — for stack import)
+    { path: join(home, '.claude', 'skills') + '/', mode: 'prefix' },
+
     // Shell configs (exact — append only)
     { path: join(home, '.zshrc'), mode: 'exact' },
     { path: join(home, '.bashrc'), mode: 'exact' },

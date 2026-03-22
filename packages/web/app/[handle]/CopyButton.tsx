@@ -14,10 +14,10 @@ export function CopyButton({ command }: { command: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="shrink-0 rounded-lg border border-zinc-800 bg-zinc-900 hover:bg-zinc-800 px-4 py-3 text-sm font-medium transition-all cursor-pointer group"
+      className="shrink-0 rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] hover:bg-[#F0F0F0] px-4 py-3 text-sm font-medium transition-all cursor-pointer group"
     >
       {copied ? (
-        <span className="text-emerald-400 flex items-center gap-1.5">
+        <span className="text-emerald-600 flex items-center gap-1.5">
           <svg
             width="14"
             height="14"
@@ -33,7 +33,7 @@ export function CopyButton({ command }: { command: string }) {
           Copied
         </span>
       ) : (
-        <span className="text-zinc-400 group-hover:text-zinc-200 flex items-center gap-1.5 transition-colors">
+        <span className="text-[#737373] group-hover:text-[#0A0A0A] flex items-center gap-1.5 transition-colors">
           <svg
             width="14"
             height="14"

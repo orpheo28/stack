@@ -7,11 +7,11 @@ export const metadata: Metadata = {
 }
 
 const TYPE_COLORS: Record<string, string> = {
-  mcp: 'text-violet-400',
-  sdk: 'text-blue-400',
-  cli: 'text-emerald-400',
-  api: 'text-amber-400',
-  config: 'text-zinc-400',
+  mcp: 'text-violet-600',
+  sdk: 'text-blue-600',
+  cli: 'text-emerald-600',
+  api: 'text-amber-600',
+  config: 'text-gray-500',
 }
 
 interface Props {
@@ -44,16 +44,16 @@ export default async function SearchPage({ searchParams }: Props) {
   const tools = data ?? []
 
   return (
-    <main className="min-h-screen bg-zinc-950 text-zinc-100">
-      <div className="mx-auto max-w-2xl px-4 py-16">
+    <main className="min-h-screen">
+      <div className="mx-auto max-w-2xl px-6 py-16">
         <a
           href="/"
-          className="text-zinc-600 hover:text-zinc-400 text-sm mb-8 inline-block transition-colors"
+          className="text-[#A3A3A3] hover:text-[#171717] text-sm mb-8 inline-block transition-colors"
         >
           ← getstack.com
         </a>
 
-        <h1 className="text-3xl font-bold mb-6">Search tools</h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-[#0A0A0A] mb-6">Search tools</h1>
 
         <form action="/search" method="GET" className="mb-8">
           <input
@@ -62,18 +62,18 @@ export default async function SearchPage({ searchParams }: Props) {
             defaultValue={query}
             placeholder="stripe, supabase, gws…"
             autoFocus
-            className="w-full rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-zinc-600 focus:outline-none focus:ring-1 focus:ring-zinc-600 transition-colors"
+            className="w-full rounded-lg border border-[#E5E5E5] bg-white px-4 py-3 text-sm text-[#0A0A0A] placeholder:text-[#A3A3A3] focus:border-[#171717] focus:outline-none transition-colors"
           />
         </form>
 
         {query !== '' && (
-          <p className="text-zinc-500 text-sm mb-4">
+          <p className="text-[#737373] text-sm mb-4">
             {tools.length} result{tools.length !== 1 ? 's' : ''} for &quot;{query}&quot;
           </p>
         )}
 
         {tools.length === 0 ? (
-          <p className="text-zinc-600 text-sm">
+          <p className="text-[#A3A3A3] text-sm">
             {query !== '' ? 'No tools found.' : 'Type a query to search the registry.'}
           </p>
         ) : (
@@ -82,21 +82,19 @@ export default async function SearchPage({ searchParams }: Props) {
               <a
                 key={t.name}
                 href={`/install/${t.name}`}
-                className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900 px-4 py-3 hover:border-zinc-600 hover:bg-zinc-800 transition-colors group"
+                className="flex items-center justify-between rounded-lg border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-3 hover:border-[#D4D4D4] transition-colors group"
               >
                 <div className="min-w-0">
-                  <p className="font-medium text-sm group-hover:text-white transition-colors">
-                    {t.display_name}
-                  </p>
+                  <p className="font-medium text-sm text-[#0A0A0A]">{t.display_name}</p>
                   {t.description !== null && (
-                    <p className="text-zinc-600 text-xs truncate mt-0.5">{t.description}</p>
+                    <p className="text-[#A3A3A3] text-xs truncate mt-0.5">{t.description}</p>
                   )}
                 </div>
                 <div className="text-right shrink-0 ml-4">
-                  <p className="text-sm font-semibold tabular-nums">
+                  <p className="text-sm font-bold tabular-nums font-mono text-[#0A0A0A]">
                     {t.installs_total.toLocaleString()}
                   </p>
-                  <p className={`text-xs mt-0.5 ${TYPE_COLORS[t.type] ?? 'text-zinc-500'}`}>
+                  <p className={`text-xs mt-0.5 ${TYPE_COLORS[t.type] ?? 'text-gray-500'}`}>
                     {t.type}
                   </p>
                 </div>
