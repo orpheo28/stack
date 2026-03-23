@@ -19,9 +19,10 @@ describe('REGISTRY', () => {
     }
   })
 
-  it('should have installMode "both" for tools with skillFile', () => {
+  it('should have installMode "both" for dual-mode tools with skillFile', () => {
     for (const [name, tool] of REGISTRY) {
-      if (tool.skillFile !== undefined) {
+      // Pure skill types (type === 'skill') don't need installMode or cliCommand
+      if (tool.skillFile !== undefined && tool.type !== 'skill') {
         expect(tool.installMode, `${name} with skillFile should have installMode`).toBe('both')
         expect(tool.cliCommand, `${name} with skillFile should have cliCommand`).toBeDefined()
       }

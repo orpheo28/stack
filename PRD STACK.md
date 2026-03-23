@@ -16,7 +16,7 @@ Confidentiel — Orphéo Hellandsjø — stack v3.0
 
 ### Vision
 
-stack est le registry universel et l'installateur CLI de tout l'écosystème du dev AI-native. En une commande, tu installes n'importe quel outil — CLI agent-native, MCP server, SDK, config AI. En une commande, tu copies le workflow complet d'un dev. GitHub montre ce que tu produis. stack montre comment tu travailles.
+stack est le registry universel et l'installateur CLI de tout l'écosystème du dev AI-native. En une commande, tu installes n'importe quel outil — skill, CLI agent-native, MCP server, SDK, config AI. En une commande, tu copies le workflow complet d'un dev. **Skill-first par défaut** — les outils s'installent comme des skills légers (fichier .md chargé on-demand) au lieu de MCP servers lourds qui polluent le contexte. GitHub montre ce que tu produis. stack montre comment tu travailles.
 
 ### 1.1 Objectif stratégique — Objectif A
 
@@ -76,10 +76,10 @@ npx stack install stripe
 
 Résultat en 8 secondes :
 
-- claude_desktop_config.json mis à jour automatiquement
-- .env créé avec STRIPE_API_KEY placeholder
-- Client TypeScript typé généré dans src/lib/stripe.ts
-- Claude Desktop prêt à utiliser Stripe immédiatement
+- **Skill installé** dans `~/.claude/skills/stripe/SKILL.md` (mode par défaut — zéro overhead contexte)
+- `.env` créé avec `STRIPE_API_KEY` placeholder
+- Claude Code charge le skill on-demand quand tu parles de Stripe
+- Alternative : `npx stack install stripe --mcp` pour le MCP server traditionnel
 
 ### 3.2 Cas d'usage 2 — Le wow moment : transplantation d'identité
 
@@ -157,18 +157,23 @@ Page d'accueil avec les @handles trending, les nouveaux CLIs agent-native popula
 
 ### 5.1 Toutes les commandes
 
-| Commande               | Description                    | Comportement détaillé                                                                                                               |
-| ---------------------- | ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `stack @handle`        | Copie le setup d'un dev        | Télécharge son stack.json depuis getstack.com, installe tous ses outils, synce son CLAUDE.md et cursor rules dans le projet courant |
-| `stack install <name>` | Installe un outil              | Détecte le contexte (voir 5.3), télécharge depuis le registry, configure les bons fichiers, génère les clients si applicable        |
-| `stack install`        | Installe depuis stack.json     | Lit le stack.json du répertoire courant et installe tous les outils listés                                                          |
-| `stack publish`        | Publie ton setup               | Lit les outils installés localement, génère/met à jour le stack.json, publie sur getstack.com/@handle via l'API                     |
-| `stack search <q>`     | Recherche dans le registry     | Requête l'API getstack.com, affiche les résultats avec scores et commandes d'install                                                |
-| `stack list`           | Liste les outils installés     | Lit les configs locales (claude_desktop_config, .env, cursor rules) et liste les outils stack détectés                              |
-| `stack remove <name>`  | Désinstalle un outil           | Retire les entrées des fichiers de config, supprime les variables d'env, met à jour le stack.json                                   |
-| `stack login`          | Authentification               | OAuth GitHub via browser, stocke le token dans le keychain OS                                                                       |
-| `stack logout`         | Déconnexion                    | Supprime le token du keychain                                                                                                       |
-| `stack whoami`         | Affiche l'utilisateur connecté | Affiche le handle, le profil getstack.com, le score d'adoption                                                                      |
+| Commande               | Description                    | Comportement détaillé                                                                                                                                                       |
+| ---------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `stack install <name>` | Installe un outil              | **Skill par défaut** — écrit SKILL.md dans ~/.claude/skills/. `--mcp` pour forcer le mode MCP traditionnel. Auto-génère le skill via MCPorter si pas de skillFile hardcodé. |
+| `stack install`        | Installe depuis stack.json     | Lit le stack.json du répertoire courant et installe tous les outils listés                                                                                                  |
+| `stack @handle`        | Copie le setup d'un dev        | Télécharge son stack.json depuis getstack.com, installe tous ses outils, synce son CLAUDE.md et cursor rules dans le projet courant                                         |
+| `stack import <url>`   | Importe depuis GitHub          | Analyse un repo GitHub (skills, CLAUDE.md, MCP configs, package.json), installe tout. Ex: `stack import github.com/garrytan/gstack`                                         |
+| `stack browse`         | Catalogue interactif           | Affiche les 134 outils par catégorie (9 catégories). Sélection → install en un clic. `--all` pour le mode non-interactif.                                                   |
+| `stack init`           | Setup interactif               | Guide le dev : "De quoi as-tu besoin ? Database, Payments, AI..." → checkboxes → choix spécifique → install tout d'un coup.                                                 |
+| `stack convert <name>` | Convertit MCP → Skill          | Génère un SKILL.md à partir de la config MCP via MCPorter. `--all` convertit tous les MCP installés.                                                                        |
+| `stack search <q>`     | Recherche dans le registry     | Affiche descriptions + badges type. Recherche aussi dans les descriptions.                                                                                                  |
+| `stack publish`        | Publie ton setup               | Lit les outils installés localement, génère/met à jour le stack.json, publie sur getstack.com/@handle via l'API                                                             |
+| `stack list`           | Liste les outils installés     | Lit les configs locales (claude_desktop_config, skills, .env, cursor rules) et liste les outils stack détectés                                                              |
+| `stack remove <name>`  | Désinstalle un outil           | Retire les entrées des fichiers de config, supprime les variables d'env, met à jour le stack.json                                                                           |
+| `stack rollback`       | Rollback dernière install      | Restaure tous les fichiers modifiés à leur état pré-install via les backups horodatés                                                                                       |
+| `stack login`          | Authentification               | OAuth GitHub via browser, stocke le token dans le keychain OS                                                                                                               |
+| `stack logout`         | Déconnexion                    | Supprime le token du keychain                                                                                                                                               |
+| `stack whoami`         | Affiche l'utilisateur connecté | Affiche le handle, le profil getstack.com, le score d'adoption                                                                                                              |
 
 ### 5.2 Context Detection — Logique de détection
 
@@ -190,14 +195,17 @@ Le CLI doit détecter automatiquement l'environnement du dev et configurer les b
 
 ### 5.3 Writers — Fichiers modifiés par type d'artifact
 
-| Type d'artifact       | Fichiers modifiés                                                         | Logique                                                                                                      |
-| --------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| MCP Server            | `claude_desktop_config.json` OU `.cursor/mcp.json` OU `windsurf settings` | Selon le client détecté. Merge avec la config existante sans écraser. Backup avant modification.             |
-| CLI agent-native      | `~/.zshrc` ou `~/.bashrc` + `PATH`                                        | Ajoute l'alias ou le PATH. Crée le binaire dans `~/.stack/bin/`. Recharge le shell.                          |
-| Config AI (CLAUDE.md) | `CLAUDE.md` dans le répertoire courant                                    | Pour `stack @handle` : crée ou merge le `CLAUDE.md`. Affiche diff avant d'appliquer. L'utilisateur confirme. |
-| Cursor Rules          | `.cursorrules` dans le répertoire courant                                 | Pour `stack @handle` : crée ou merge. Affiche diff. L'utilisateur confirme.                                  |
-| SDK / npm package     | `package.json` + `node_modules`                                           | `npm install --save`. Génère un snippet d'initialisation `src/lib/{name}.ts` si TypeScript détecté.          |
-| API REST              | `.env` ou `.env.local`                                                    | Ajoute les variables d'env avec placeholder. Génère `src/lib/{name}.ts` avec le client typé.                 |
+| Type d'artifact       | Fichiers modifiés                                                         | Logique                                                                                                                                                                                     |
+| --------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Skill** (défaut)    | `~/.claude/skills/{name}/SKILL.md`                                        | **Mode par défaut pour les MCP tools.** Écrit un fichier .md qui enseigne à l'agent comment utiliser l'outil via bash + MCPorter. Chargé on-demand par Claude Code. Zéro overhead contexte. |
+| MCP Server            | `claude_desktop_config.json` OU `.cursor/mcp.json` OU `windsurf settings` | Mode alternatif (`--mcp`). Merge avec la config existante sans écraser. Backup avant modification.                                                                                          |
+| CLI agent-native      | `~/.zshrc` ou `~/.bashrc` + `PATH`                                        | Ajoute l'alias ou le PATH. Crée le binaire dans `~/.stack/bin/`. Recharge le shell.                                                                                                         |
+| Config AI (CLAUDE.md) | `CLAUDE.md` dans le répertoire courant                                    | Pour `stack @handle` : crée ou merge le `CLAUDE.md`. Affiche diff avant d'appliquer. L'utilisateur confirme.                                                                                |
+| Cursor Rules          | `.cursorrules` dans le répertoire courant                                 | Pour `stack @handle` : crée ou merge. Affiche diff. L'utilisateur confirme.                                                                                                                 |
+| SDK / npm package     | `package.json` + `node_modules`                                           | `npm install --save`. Génère un snippet d'initialisation `src/lib/{name}.ts` si TypeScript détecté.                                                                                         |
+| API REST              | `.env` ou `.env.local`                                                    | Ajoute les variables d'env avec placeholder. Génère `src/lib/{name}.ts` avec le client typé.                                                                                                |
+
+**Paradigm shift : Skill > MCP.** Stack installe par défaut en mode skill (fichier .md dans `~/.claude/skills/`). Les MCPs sont toujours supportés via `--mcp` mais ne sont plus le mode par défaut. Les skills utilisent MCPorter pour exécuter les MCP servers via CLI, sans charger les tool definitions dans le contexte.
 
 ### 5.4 Le fichier stack.json
 
@@ -260,38 +268,69 @@ C'est la feature la plus importante. Elle doit être parfaite.
 ```
 stack/
 ├── packages/
-│ ├── cli/ # Le CLI principal
-│ │ ├── src/
-│ │ │ ├── commands/
-│ │ │ │ ├── install.ts # stack install + stack @handle
-│ │ │ │ ├── publish.ts # stack publish
-│ │ │ │ ├── search.ts # stack search
-│ │ │ │ └── list.ts # stack list
-│ │ │ ├── writers/ # Un writer par type d'artifact
-│ │ │ │ ├── mcp.ts # Écrit dans claude_desktop_config.json
-│ │ │ │ ├── cli.ts # Écrit dans .zshrc + PATH
-│ │ │ │ ├── claude-md.ts # Écrit CLAUDE.md
-│ │ │ │ ├── env.ts # Écrit .env
-│ │ │ │ └── sdk.ts # npm install + génère client TS
-│ │ │ ├── detectors/ # Context detection
-│ │ │ │ └── context.ts # Détecte claude-desktop, cursor, windsurf
-│ │ │ ├── api/ # Calls vers getstack.com API
-│ │ │ │ └── client.ts
-│ │ │ └── index.ts # Entry point CLI
-│ │ └── package.json
-│ └── web/ # getstack.com (Next.js)
-│ ├── app/
-│ │ ├── page.tsx # Feed trending
-│ │ ├── @[handle]/
-│ │ │ └── page.tsx # Profil public @handle
-│ │ ├── install/[name]/ # Page outil
-│ │ │ └── page.tsx
-│ │ └── api/ # API routes
-│ └── package.json
+│   ├── cli/
+│   │   ├── src/
+│   │   │   ├── commands/
+│   │   │   │   ├── install.ts      # stack install (skill par défaut) + stack @handle
+│   │   │   │   ├── import.ts       # stack import <github-url>
+│   │   │   │   ├── browse.ts       # stack browse (catalogue interactif)
+│   │   │   │   ├── init.ts         # stack init (setup interactif)
+│   │   │   │   ├── convert.ts      # stack convert (MCP → skill)
+│   │   │   │   ├── publish.ts      # stack publish
+│   │   │   │   ├── search.ts       # stack search (avec descriptions)
+│   │   │   │   ├── list.ts         # stack list
+│   │   │   │   ├── remove.ts       # stack remove
+│   │   │   │   ├── rollback.ts     # stack rollback
+│   │   │   │   └── auth.ts         # stack login/logout/whoami
+│   │   │   ├── writers/
+│   │   │   │   ├── skill.ts        # Écrit SKILL.md + auto-génère via MCPorter
+│   │   │   │   ├── skills.ts       # Clone skills depuis GitHub repos
+│   │   │   │   ├── mcp.ts          # Écrit claude_desktop_config.json
+│   │   │   │   ├── cli-tool.ts     # Écrit dans ~/.stack/bin/ + PATH
+│   │   │   │   ├── config.ts       # Écrit CLAUDE.md, .cursorrules, .windsurfrules
+│   │   │   │   ├── env.ts          # Écrit .env
+│   │   │   │   └── sdk.ts          # npm install + génère client TS
+│   │   │   ├── analyzers/
+│   │   │   │   └── github-repo.ts  # Analyse repos GitHub pour stack import
+│   │   │   ├── registry/
+│   │   │   │   ├── tools.ts        # Interface ToolDefinition + agrégation
+│   │   │   │   ├── remote.ts       # Registry distant getstack.com/api/tools
+│   │   │   │   └── categories/     # 134 outils en 9 fichiers
+│   │   │   │       ├── mcp-official.ts
+│   │   │   │       ├── mcp-cloud.ts
+│   │   │   │       ├── mcp-ai.ts
+│   │   │   │       ├── mcp-dev-tools.ts
+│   │   │   │       ├── mcp-data.ts
+│   │   │   │       ├── sdks-ai.ts
+│   │   │   │       ├── sdks-infra.ts
+│   │   │   │       ├── sdks-payments.ts
+│   │   │   │       └── clis.ts
+│   │   │   ├── detectors/
+│   │   │   │   └── context.ts      # Détecte claude-desktop, cursor, windsurf, vscode, zed
+│   │   │   ├── security/
+│   │   │   │   ├── backup.ts       # Backup horodaté + rollback
+│   │   │   │   ├── scan.ts         # Scan prompt injection CLAUDE.md
+│   │   │   │   ├── verify.ts       # SHA256 integrity check
+│   │   │   │   └── whitelist.ts    # Paths autorisés (inclut ~/.claude/skills/)
+│   │   │   ├── api/
+│   │   │   │   └── client.ts       # Appels API getstack.com
+│   │   │   ├── utils/
+│   │   │   │   ├── atomic-write.ts
+│   │   │   │   ├── stack-json.ts
+│   │   │   │   ├── auth-token.ts
+│   │   │   │   └── github-release.ts
+│   │   │   ├── types/
+│   │   │   │   ├── artifact.ts     # ArtifactType (mcp|cli|sdk|api|config|skill)
+│   │   │   │   └── errors.ts       # StackError + STACK_XXX codes
+│   │   │   └── index.ts            # Entry point + global error handler
+│   │   ├── tests/
+│   │   │   ├── unit/               # 20+ test files
+│   │   │   ├── e2e/                # 4 test files
+│   │   │   └── security/           # T-SEC-001 to T-SEC-010
+│   │   └── package.json
+│   └── web/                        # getstack.com (Next.js)
 ├── supabase/
-│ ├── migrations/
-│ └── functions/
-└── package.json # Monorepo root (pnpm workspaces)
+└── package.json                    # Monorepo root (pnpm workspaces + Turborepo)
 ```
 
 ### 6.3 Schéma de base de données Supabase
@@ -322,7 +361,7 @@ CREATE TABLE tools (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT UNIQUE NOT NULL, -- "stripe"
   display_name TEXT,
-  type TEXT NOT NULL, -- "mcp" | "cli" | "sdk" | "api" | "config"
+  type TEXT NOT NULL, -- "mcp" | "cli" | "sdk" | "api" | "config" | "skill"
   source TEXT, -- "npm:@stripe/mcp-server" | "github:..."
   version TEXT,
   description TEXT,
@@ -427,10 +466,14 @@ npx stack @handle
 
 npx stack publish
 
-## Available tools
+## Available tools (134 total)
 
-- stripe, supabase, anthropic, vercel, github, resend, linear,
-  notion, cloudflare, neon, upstash, replicate, gws, inngest
+- MCP Cloud: stripe, supabase, vercel, github, linear, notion, sentry, cloudflare, neon, auth0, shopify, hubspot, salesforce, datadog, jira...
+- MCP AI: perplexity, pinecone, exa, tavily, qdrant, ollama, huggingface, deepseek, openrouter...
+- MCP Dev: playwright, figma, docker, prisma, firecrawl, context7, slack, kubernetes, terraform...
+- SDKs: anthropic, openai, google-ai, vercel-ai, mistral, groq, drizzle, stripe-sdk, resend, hono, trpc, zod...
+- CLIs: gws, cli-anything, mcporter, agent-browser, notebooklm-py, ffmpeg, aider, goose, claude-code...
+- Skills: add-mcp-skill (meta-skill to auto-convert any MCP)
 
 ## Context detection
 
@@ -485,16 +528,19 @@ Chaque dev qui partage son @handle est une pub organique. La Claude skill fait l
 
 ## 12. Plan de Build — 4 Semaines
 
-### 12.1 Semaine 1 — CLI MVP
+### 12.1 Semaine 1 — CLI MVP ✅ DONE
 
-Trois commandes uniquement. Rien d'autre.
-
-- `stack install stripe` — installe et configure Stripe MCP dans `claude_desktop_config.json`
+- `stack install stripe` — installe en mode **skill par défaut** (ou `--mcp` pour MCP)
 - `stack @orpheo` — copie le setup complet avec CLAUDE.md sync
 - `stack publish` — publie le setup sur getstack.com
-- Context detection pour Claude Desktop, Cursor, Windsurf
-- 20 intégrations pré-configurées (voir section 13)
-- stack.json spec
+- `stack import <github-url>` — importe depuis GitHub (testé avec garrytan/gstack)
+- `stack browse` — catalogue interactif par catégorie
+- `stack init` — setup interactif guidé
+- `stack convert` — convertit MCP → skill via MCPorter
+- Context detection pour Claude Desktop, Cursor, Windsurf, VS Code, Zed, Claude Code
+- **134 intégrations** dans 9 catégories (voir section 13)
+- Mode skill-first avec auto-génération MCPorter
+- 304 tests passent (28 fichiers)
 
 ### 12.2 Semaine 2 — Web getstack.com
 
@@ -518,32 +564,31 @@ Trois commandes uniquement. Rien d'autre.
 - `stack list` et `stack remove`
 - stack.json dans les repos de la communauté STACK
 
-## 13. Registry — 20 Intégrations V1
+## 13. Registry — 134 Intégrations
 
-Ces 20 intégrations sont pré-configurées et testées au lancement. Chacune a un writer dédié qui configure les bons fichiers.
+Le registry contient 134 outils pré-configurés, organisés en 9 catégories. Chaque outil MCP supporte le **mode skill par défaut** (auto-généré via MCPorter) + le mode MCP traditionnel via `--mcp`. 16 outils ont des skills hardcodés avec des instructions CLI détaillées.
 
-| Nom         | Type         | Source                                        | Config auto                                                       |
-| ----------- | ------------ | --------------------------------------------- | ----------------------------------------------------------------- |
-| stripe      | mcp          | `npm:@stripe/mcp-server`                      | `claude_desktop_config.json` + `.env` STRIPE_KEY                  |
-| supabase    | mcp + sdk    | `npm:@supabase/mcp` + `@supabase/supabase-js` | `claude_desktop_config.json` + `.env` SUPABASE_URL + SUPABASE_KEY |
-| anthropic   | mcp + sdk    | `npm:@anthropic-ai/sdk`                       | `.env` ANTHROPIC_API_KEY + CLAUDE.md template                     |
-| vercel      | mcp + cli    | `npm:vercel MCP`                              | `claude_desktop_config.json`                                      |
-| github      | mcp + sdk    | `npm:@github/mcp-server`                      | `claude_desktop_config.json` + `.env` GITHUB_TOKEN                |
-| resend      | mcp + sdk    | `npm:resend`                                  | `.env` RESEND_API_KEY + `src/lib/resend.ts`                       |
-| linear      | mcp          | `npm:@linear/mcp-server`                      | `claude_desktop_config.json` + `.env` LINEAR_API_KEY              |
-| notion      | mcp          | `npm:@notionhq/mcp-server`                    | `claude_desktop_config.json` + `.env` NOTION_TOKEN                |
-| cloudflare  | mcp + cli    | `npm:@cloudflare/mcp-server`                  | `claude_desktop_config.json`                                      |
-| neon        | mcp          | `npm:@neondatabase/mcp-server`                | `claude_desktop_config.json` + `.env` DATABASE_URL                |
-| upstash     | mcp + sdk    | `npm:@upstash/redis`                          | `.env` UPSTASH_URL + UPSTASH_TOKEN                                |
-| replicate   | mcp + api    | `npm:replicate`                               | `.env` REPLICATE_API_TOKEN + `src/lib/replicate.ts`               |
-| inngest     | sdk          | `npm:inngest`                                 | `npm install` + config initiale `src/inngest.ts`                  |
-| axiom       | mcp + api    | `npm:@axiomhq/mcp-server`                     | `claude_desktop_config.json` + `.env` AXIOM_TOKEN                 |
-| gws         | cli          | `github:google/gws-cli`                       | `~/.stack/bin/gws` + PATH + auth setup                            |
-| openclaw    | cli + config | `github:openclaw/openclaw`                    | OpenClaw skills directory + config                                |
-| browserbase | mcp          | `npm:@browserbase/mcp`                        | `claude_desktop_config.json` + `.env` BROWSERBASE_KEY             |
-| twilio      | api + sdk    | `npm:twilio`                                  | `.env` TWILIO_SID + TWILIO_TOKEN + `src/lib/twilio.ts`            |
-| reducto     | mcp + api    | `npm:@reducto/mcp`                            | `claude_desktop_config.json` + `.env` REDUCTO_KEY                 |
-| liveblocks  | sdk          | `npm:@liveblocks/client`                      | `npm install` + `src/liveblocks.config.ts`                        |
+| Catégorie              | Nombre | Exemples                                                                                                                                                                      |
+| ---------------------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MCP — Cloud & SaaS     | 20     | Stripe ★, Supabase ★, Vercel ★, GitHub ★, Sentry ★, Linear, Notion, Cloudflare, Neon, Auth0, Shopify, HubSpot, Salesforce, Datadog, Jira, Confluence...                       |
+| MCP — Dev Tools        | 24     | Playwright ★, Docker ★, Prisma ★, Context7 ★, Firecrawl, Slack, Brave Search, Stagehand, Postman, Turso, Semgrep, Snyk, Kubernetes, Terraform...                              |
+| MCP — AI & ML          | 14     | Perplexity, E2B, Pinecone, Exa, Tavily, Qdrant, Weaviate, Langfuse, Ollama, HuggingFace, DeepSeek, Together, OpenRouter...                                                    |
+| MCP — Official         | 13     | Filesystem, Memory, Fetch, PostgreSQL, SQLite, Sequential Thinking, Google Drive, Google Maps, Puppeteer, Git, Time...                                                        |
+| MCP — Databases        | 12     | MongoDB, MySQL, Redis, Elasticsearch, ClickHouse, Snowflake, BigQuery, CockroachDB, Airtable, DynamoDB, PlanetScale...                                                        |
+| SDKs — AI              | 12     | Anthropic, OpenAI, Google AI, Vercel AI SDK, Mistral, Groq, LangChain, Replicate, Cohere, Fireworks, LlamaIndex...                                                            |
+| SDKs — Infrastructure  | 15     | Upstash, Inngest, Resend, Drizzle, Prisma Client, Kysely, Trigger.dev, Hono, tRPC, Zod, UploadThing, Unkey, Knock, Svix...                                                    |
+| SDKs — Payments & SaaS | 8      | Stripe SDK, Twilio, SendGrid, Postmark, Plaid, Square, Lemon Squeezy, Paddle                                                                                                  |
+| CLIs — Agent-native    | 16     | GWS, CLI Anything ★, MCPorter ★, Agent Browser ★, API-to-CLI ★, NotebookLM ★, FFmpeg ★, LLMFit ★, Claude Code, Aider, Goose, OpenCode, Codex, Add MCP Skill (meta-skill) ★... |
+
+★ = Skill hardcodé avec instructions CLI détaillées (les autres utilisent l'auto-génération MCPorter)
+
+### Types d'artifacts
+
+```typescript
+type ArtifactType = 'mcp' | 'cli' | 'sdk' | 'api' | 'config' | 'skill'
+```
+
+Le type `skill` est nouveau — il représente un fichier .md dans `~/.claude/skills/` qui enseigne à l'agent comment utiliser un outil via bash. C'est le mode par défaut pour tous les outils MCP.
 
 ## 14. Modèle Économique — Secondaire à la Traction
 
@@ -733,12 +778,16 @@ const ALLOWED_WRITE_PATHS = [
   '~/Library/Application Support/Claude/claude_desktop_config.json',
   '~/.cursor/mcp.json',
   '~/.windsurfrules',
+  '<project>/.cursor/mcp.json',
+  '<project>/.vscode/mcp.json',
   '<project>/.cursorrules',
   '<project>/CLAUDE.md',
   '<project>/.env',
   '<project>/.env.local',
   '<project>/stack.json',
-  '~/.stack/', // Répertoire stack exclusivement
+  '<project>/src/lib/', // Generated TypeScript clients
+  '~/.stack/', // Stack internal directory
+  '~/.claude/skills/', // Claude Code skills (skill-first mode)
   '~/.zshrc', // Pour PATH uniquement — append only
   '~/.bashrc', // Pour PATH uniquement — append only
 ];

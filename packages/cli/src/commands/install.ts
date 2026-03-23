@@ -138,7 +138,8 @@ export async function installTool(
   const ctx = await detectContext(cwd, homeDir)
 
   const useSkillMode =
-    options.mode === 'skill' && (tool.skillFile !== undefined || tool.mcpConfig !== undefined)
+    options.mode === 'skill' &&
+    (tool.skillFile !== undefined || tool.mcpConfig !== undefined || tool.type === 'skill')
 
   // Dry run: return what would happen without modifying anything
   if (options.dryRun === true) {
@@ -480,6 +481,9 @@ function resolveInstallMode(
   // Skill is the default for any MCP tool — zero overhead, on-demand loading
   // Use --mcp to force traditional MCP server mode
   if (tool.mcpConfig !== undefined) return 'skill'
+
+  // Pure skill type (no MCP, like meta-skills)
+  if (tool.type === 'skill' && tool.skillFile !== undefined) return 'skill'
 
   return undefined
 }
