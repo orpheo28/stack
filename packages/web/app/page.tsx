@@ -44,7 +44,10 @@ const TYPE_DOT: Record<string, string> = {
 export default async function HomePage() {
   const supabase = createServiceClient()
 
-  const [handlesResult, toolsResult] = await Promise.all([
+  const todayStart = new Date()
+  todayStart.setUTCHours(0, 0, 0, 0)
+
+  const [handlesResult, toolsResult, installsResult] = await Promise.all([
     supabase
       .from('handles')
       .select('handle, display_name, avatar_url, copies_this_week, copies_total, use_json')
@@ -55,10 +58,15 @@ export default async function HomePage() {
       .select('name, display_name, type, description, installs_this_week, installs_total')
       .order('installs_this_week', { ascending: false })
       .limit(12),
+    supabase
+      .from('install_events')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', todayStart.toISOString()),
   ])
 
   const handles = handlesResult.data ?? []
   const tools = toolsResult.data ?? []
+  const installsToday = installsResult.count ?? 0
 
   return (
     <main className="min-h-screen">
@@ -67,7 +75,9 @@ export default async function HomePage() {
         <header className="text-center mb-24">
           <div className="inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-[#FAFAFA] px-4 py-1.5 text-xs text-[#737373] mb-8">
             <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            42 tools available
+            {installsToday > 0
+              ? `${installsToday.toLocaleString()} installs today`
+              : '42 tools available'}
           </div>
 
           <h1 className="text-5xl sm:text-6xl font-semibold tracking-tight mb-6 text-[#0A0A0A]">

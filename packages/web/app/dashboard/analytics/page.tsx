@@ -38,27 +38,41 @@ export default async function AnalyticsPage(): Promise<React.JSX.Element> {
     .eq('user_id', user.id)
     .single()
 
-  if (handle === null) {
-    return (
-      <div className="p-8">
-        <h1 className="text-2xl font-semibold text-[#0A0A0A] mb-4">Analytics</h1>
-        <p className="text-[#737373]">No data yet. Publish your setup first.</p>
-      </div>
-    )
-  }
+  if (handle === null) redirect('/onboarding')
 
-  // Build a synthetic weekly breakdown from the counters we have
-  // (detailed daily events require Pro + RLS policy extension — shown as upgrade prompt)
   const isPro = handle.subscription_status === 'pro'
 
   const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-  // Distribute this_week copies across days as a placeholder visualization
-  const weekTotal = handle.copies_this_week ?? 0
-  const weekDays = weekdays.map((day, i) => ({
-    label: day,
-    // Simple distribution for display when Pro is not yet available
-    value: isPro ? Math.round(weekTotal * (0.1 + 0.05 * ((i + 2) % 7))) : 0,
-  }))
+
+  let weekDays: { label: string; value: number }[]
+
+  if (isPro) {
+    // Fetch real daily copy_events for last 7 days
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
+    const { data: dailyData } = await service
+      .from('copy_events')
+      .select('created_at')
+      .eq('handle_id', handle.id)
+      .gte('created_at', sevenDaysAgo.toISOString())
+      .order('created_at', { ascending: true })
+
+    // Group by weekday label (Mon…Sun) relative to today
+    const countsByDay: Record<string, number> = {}
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000)
+      const label = weekdays[d.getDay() === 0 ? 6 : d.getDay() - 1] ?? weekdays[0]!
+      countsByDay[label] = countsByDay[label] ?? 0
+    }
+    for (const row of dailyData ?? []) {
+      const d = new Date(row.created_at)
+      const label = weekdays[d.getDay() === 0 ? 6 : d.getDay() - 1] ?? weekdays[0]!
+      countsByDay[label] = (countsByDay[label] ?? 0) + 1
+    }
+    weekDays = weekdays.map((day) => ({ label: day, value: countsByDay[day] ?? 0 }))
+  } else {
+    weekDays = weekdays.map((day) => ({ label: day, value: 0 }))
+  }
+
   const maxWeek = Math.max(...weekDays.map((d) => d.value), 1)
 
   return (
@@ -101,8 +115,21 @@ export default async function AnalyticsPage(): Promise<React.JSX.Element> {
             ))}
           </div>
         ) : (
-          <div className="h-32 flex items-center justify-center border border-dashed border-[#E5E5E5] rounded-lg">
-            <p className="text-sm text-[#A3A3A3]">Upgrade to Pro to see daily breakdown</p>
+          <div className="h-32 flex flex-col items-center justify-center gap-3 border border-dashed border-[#E5E5E5] rounded-lg px-4">
+            <div className="text-center">
+              <p className="text-sm font-medium text-[#0A0A0A]">
+                {handle.copies_this_week ?? 0} copies this week
+              </p>
+              <p className="text-xs text-[#A3A3A3] mt-0.5">
+                {handle.copies_this_month ?? 0} this month · {handle.copies_total ?? 0} all time
+              </p>
+            </div>
+            <a
+              href="/dashboard/upgrade"
+              className="text-xs text-white bg-[#171717] hover:bg-[#0A0A0A] px-3 py-1.5 rounded-md transition-colors"
+            >
+              Upgrade to Pro for daily breakdown
+            </a>
           </div>
         )}
       </div>

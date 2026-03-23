@@ -256,9 +256,94 @@ export async function installTool(
   }
 }
 
+// --- Zero-config recommended tools by project type ---
+
+const ZERO_CONFIG_RECOMMENDATIONS: Readonly<Record<string, readonly string[]>> = {
+  node: ['stripe', 'supabase', 'resend', 'context7', 'github'],
+  python: ['anthropic', 'openai', 'filesystem', 'github'],
+  unknown: [],
+}
+
+async function installZeroConfig(cwd: string, explicitMode?: 'mcp' | 'skill'): Promise<void> {
+  // If stack.json exists, fall through to the existing behaviour
+  const manifest = await readStackJson(cwd)
+  if (manifest !== null) {
+    return installFromStackJson(cwd, explicitMode)
+  }
+
+  const ctx = await detectContext(cwd)
+  const recommended = ZERO_CONFIG_RECOMMENDATIONS[ctx.projectType] ?? []
+
+  if (recommended.length === 0) {
+    console.log(chalk.yellow('\nNo project type detected.'))
+    console.log(chalk.dim('Run "stack search" to browse available tools.'))
+    return
+  }
+
+  // Resolve only tools that exist in the registry
+  const toolDefs = (await Promise.all(recommended.map((name) => findTool(name)))).filter(
+    (t): t is ToolDefinition => t !== undefined,
+  )
+
+  if (toolDefs.length === 0) {
+    console.log(chalk.yellow('\nNo recommended tools found.'))
+    console.log(chalk.dim('Run "stack search" to browse available tools.'))
+    return
+  }
+
+  console.log(chalk.cyan(`\nDetected: ${ctx.projectType} project`))
+  console.log(chalk.dim('Recommended tools for your stack:\n'))
+
+  const { default: inquirer } = await import('inquirer')
+  const { selected } = await inquirer.prompt<{ selected: string[] }>([
+    {
+      type: 'checkbox',
+      name: 'selected',
+      message: 'Select tools to install:',
+      choices: toolDefs.map((t) => ({
+        name: `${t.displayName.padEnd(20)} ${chalk.dim(t.type.padEnd(6))}  ${chalk.dim(t.description)}`,
+        value: t.name,
+        checked: true,
+      })),
+    },
+  ])
+
+  if (selected.length === 0) {
+    console.log(chalk.yellow('\nNo tools selected.'))
+    return
+  }
+
+  const spinner = ora(`Installing ${selected.length.toString()} tools...`).start()
+  const start = Date.now()
+
+  const results = await Promise.allSettled(
+    selected.map(async (name) => {
+      const tool = toolDefs.find((t) => t.name === name)
+      if (tool !== undefined)
+        return installTool(tool, cwd, { mode: resolveInstallMode(tool, explicitMode) })
+      return null
+    }),
+  )
+
+  spinner.stop()
+
+  const succeeded = results.filter((r) => r.status === 'fulfilled').length
+  const failed = results.filter((r) => r.status === 'rejected').length
+  const duration = ((Date.now() - start) / 1000).toFixed(1)
+
+  console.log(
+    chalk.green(
+      `\n✓ Installed ${succeeded.toString()}/${selected.length.toString()} tools in ${duration}s`,
+    ),
+  )
+  if (failed > 0) {
+    console.log(chalk.red(`  ${failed.toString()} tools failed`))
+  }
+}
+
 // --- Install from stack.json ---
 
-async function installFromStackJson(cwd: string): Promise<void> {
+async function installFromStackJson(cwd: string, explicitMode?: 'mcp' | 'skill'): Promise<void> {
   const manifest = await readStackJson(cwd)
 
   if (manifest === null) {
@@ -279,7 +364,7 @@ async function installFromStackJson(cwd: string): Promise<void> {
     toolNames.map(async (name) => {
       const tool = await findTool(name)
       if (tool !== undefined) {
-        return installTool(tool, cwd)
+        return installTool(tool, cwd, { mode: resolveInstallMode(tool, explicitMode) })
       }
       return {
         toolName: name,
@@ -314,7 +399,11 @@ async function installFromStackJson(cwd: string): Promise<void> {
 
 // --- @handle flow ---
 
-async function installHandle(handle: string, dryRun?: boolean): Promise<void> {
+async function installHandle(
+  handle: string,
+  dryRun?: boolean,
+  explicitMode?: 'mcp' | 'skill',
+): Promise<void> {
   const cleanHandle = handle.startsWith('@') ? handle.slice(1) : handle
 
   // Guarantee 7: Check reserved handles
@@ -351,6 +440,41 @@ async function installHandle(handle: string, dryRun?: boolean): Promise<void> {
       (manifest.cursorRules !== undefined ? ' + cursor rules' : ''),
   )
 
+  // Preview mode: show formatted table and return without modifying anything
+  if (dryRun === true) {
+    const previewItems = await Promise.all(
+      toolNames.map(async (name) => {
+        const registryTool = await findTool(name)
+        if (registryTool === undefined) return { name, type: 'unknown', targets: [] as string[] }
+        const result = await installTool(registryTool, process.cwd(), { dryRun: true })
+        const targets: string[] = []
+        for (const mcp of result.mcpResults) {
+          targets.push(mcp.configPath.replace(homedir(), '~'))
+        }
+        if (result.skillPath !== null) targets.push(result.skillPath)
+        if (result.envFilePath !== null) targets.push(result.envFilePath)
+        if (result.sdkFilePath !== null) targets.push(result.sdkFilePath)
+        if (result.cliBinPath !== null) targets.push(result.cliBinPath)
+        return { name, type: registryTool.type, targets }
+      }),
+    )
+
+    const SEP = chalk.dim('─'.repeat(56))
+    console.log(`\n  ${SEP}`)
+    for (const item of previewItems) {
+      const name = chalk.cyan(item.name.padEnd(16))
+      const type = chalk.yellow(item.type.padEnd(8))
+      const target =
+        item.targets.length > 0
+          ? item.targets.join(chalk.dim(' + '))
+          : chalk.dim('(not in registry)')
+      console.log(`  ${name} ${type} ${chalk.dim('→')} ${target}`)
+    }
+    console.log(`  ${SEP}`)
+    console.log(chalk.dim(`\n  Run without --preview to install\n`))
+    return
+  }
+
   const cwd = process.cwd()
   const start = Date.now()
   const results: PromiseSettledResult<InstallResult>[] = []
@@ -359,7 +483,10 @@ async function installHandle(handle: string, dryRun?: boolean): Promise<void> {
   const toolInstalls = toolNames.map(async (name) => {
     const registryTool = await findTool(name)
     if (registryTool !== undefined) {
-      return installTool(registryTool, cwd, { dryRun: dryRun === true })
+      return installTool(registryTool, cwd, {
+        dryRun,
+        mode: resolveInstallMode(registryTool, explicitMode),
+      })
     }
     // Tool not in local registry — skip for now
     return {
@@ -376,17 +503,15 @@ async function installHandle(handle: string, dryRun?: boolean): Promise<void> {
 
   results.push(...(await Promise.allSettled(toolInstalls)))
 
-  // Apply config files (skip in dry-run mode)
-  if (dryRun !== true) {
-    if (manifest.claudeMd !== undefined) {
-      await writeClaudeMd(manifest.claudeMd, cwd, cwd, { interactive: true })
-    }
-    if (manifest.cursorRules !== undefined) {
-      await writeCursorRules(manifest.cursorRules, cwd, cwd, { interactive: true })
-    }
-    if (manifest.windsurfRules !== undefined) {
-      await writeWindsurfrules(manifest.windsurfRules, cwd, cwd, { interactive: true })
-    }
+  // Apply config files (dry-run is handled by the early return above)
+  if (manifest.claudeMd !== undefined) {
+    await writeClaudeMd(manifest.claudeMd, cwd, cwd, { interactive: true })
+  }
+  if (manifest.cursorRules !== undefined) {
+    await writeCursorRules(manifest.cursorRules, cwd, cwd, { interactive: true })
+  }
+  if (manifest.windsurfRules !== undefined) {
+    await writeWindsurfrules(manifest.windsurfRules, cwd, cwd, { interactive: true })
   }
 
   const succeeded = results.filter((r) => r.status === 'fulfilled').length
@@ -492,21 +617,30 @@ export function createInstallCommand(): Command {
   return new Command('install')
     .argument('[name]', 'Tool name to install (or @handle)')
     .option('--dry-run', 'Preview changes without modifying any files')
+    .option('--preview', 'Preview changes without modifying any files (alias for --dry-run)')
     .option('--skill', 'Install as a skill (CLI + on-demand loading)')
     .option('--mcp', 'Install as an MCP server (traditional)')
     .description('Install a tool or copy a developer setup')
     .action(
       async (
         name: string | undefined,
-        opts: { dryRun?: boolean; skill?: boolean; mcp?: boolean },
+        opts: { dryRun?: boolean; preview?: boolean; skill?: boolean; mcp?: boolean },
       ) => {
+        const isPreview = opts.dryRun === true || opts.preview === true
+        const explicitMode =
+          opts.skill === true
+            ? ('skill' as const)
+            : opts.mcp === true
+              ? ('mcp' as const)
+              : undefined
+
         if (name === undefined) {
-          await installFromStackJson(process.cwd())
+          await installZeroConfig(process.cwd(), explicitMode)
           return
         }
 
         if (name.startsWith('@')) {
-          await installHandle(name, opts.dryRun)
+          await installHandle(name, isPreview, explicitMode)
           return
         }
 
@@ -523,16 +657,10 @@ export function createInstallCommand(): Command {
         }
 
         // Resolve install mode
-        const explicitMode =
-          opts.skill === true
-            ? ('skill' as const)
-            : opts.mcp === true
-              ? ('mcp' as const)
-              : undefined
         const mode = resolveInstallMode(tool, explicitMode)
 
-        // Explicit --dry-run: show preview and stop
-        if (opts.dryRun === true) {
+        // Explicit --dry-run / --preview: show preview and stop
+        if (isPreview) {
           const result = await installTool(tool, process.cwd(), { dryRun: true, mode })
           console.log(formatResult(result))
           return

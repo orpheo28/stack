@@ -22,7 +22,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const clean = handle.replace(/^@/, '')
   const title = `@${clean} — getstack.com`
   const description = `Copy @${clean}'s AI-native dev setup in one command: npx usedev @${clean}`
-  const ogImage = `/api/og?handle=${encodeURIComponent(clean)}`
+
+  // Fetch stats so the OG image reflects real data instead of zeros
+  const supabase = createServiceClient()
+  const { data } = await supabase
+    .from('handles')
+    .select('copies_total, use_json')
+    .eq('handle', clean.toLowerCase())
+    .maybeSingle()
+  const copies = data?.copies_total ?? 0
+  const toolCount = data !== null ? Object.keys(parseUseJson(data.use_json).tools ?? {}).length : 0
+
+  const ogImage = `/api/og?handle=${encodeURIComponent(clean)}&copies=${copies}&tools=${toolCount}`
   return {
     title,
     description,
@@ -64,6 +75,8 @@ export default async function HandlePage({ params }: Props) {
   const tools = useJson.tools ?? {}
   const toolEntries = Object.entries(tools)
   const command = `npx usedev @${data.handle}`
+  // is_verified added by migration 20260323000004 — run pnpm db:types to remove this cast
+  const isVerified = (data as typeof data & { is_verified?: boolean }).is_verified === true
   const claudeMdLines = data.claude_md?.split('\n') ?? []
   const claudeMdPreview = claudeMdLines.slice(0, 8).join('\n')
   const hasMoreClaudeMd = claudeMdLines.length > 8
@@ -104,9 +117,38 @@ export default async function HandlePage({ params }: Props) {
             <div className="w-16 h-16 rounded-full bg-[#F5F5F5] border border-[#E5E5E5] shrink-0" />
           )}
           <div className="flex-1 min-w-0 pt-1">
-            <h1 className="text-xl font-semibold text-[#0A0A0A] truncate">
-              {data.display_name ?? `@${data.handle}`}
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold text-[#0A0A0A] truncate">
+                {data.display_name ?? `@${data.handle}`}
+              </h1>
+              {isVerified && (
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  className="shrink-0 text-blue-500"
+                  aria-label="Verified"
+                >
+                  <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.15" />
+                  <path
+                    d="M9 12l2 2 4-4"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    fill="none"
+                  />
+                </svg>
+              )}
+            </div>
             <p className="text-[#737373] text-sm mt-0.5 font-mono">@{data.handle}</p>
             {data.location !== null && (
               <p className="text-[#A3A3A3] text-sm mt-1">{data.location}</p>

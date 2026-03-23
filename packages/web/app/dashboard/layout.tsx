@@ -28,15 +28,19 @@ export default async function DashboardLayout({
     redirect('/auth/cli')
   }
 
-  // Fetch handle for sidebar display
+  // Fetch handle for sidebar display — redirect to onboarding if not set up yet
   const service = createServiceClient()
   const { data: handle } = await service
     .from('handles')
     .select('handle, display_name, avatar_url, subscription_status')
     .eq('user_id', user.id)
-    .single()
+    .maybeSingle()
 
-  const displayName = handle?.display_name ?? handle?.handle ?? user.email ?? 'You'
+  if (handle === null) {
+    redirect('/onboarding')
+  }
+
+  const displayName = handle.display_name ?? handle.handle ?? user.email ?? 'You'
   const plan = (handle?.subscription_status as string | undefined) ?? 'free'
 
   return (

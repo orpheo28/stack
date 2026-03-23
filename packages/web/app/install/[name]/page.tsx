@@ -1,6 +1,7 @@
 import { notFound, redirect } from 'next/navigation'
 import type { Metadata } from 'next'
 import { createServiceClient } from '@/lib/supabase/server'
+import { CopyButton } from './CopyButton'
 
 interface Props {
   params: Promise<{ name: string }>
@@ -107,9 +108,12 @@ export default async function InstallPage({ params }: Props) {
           <p className="text-[11px] text-[#A3A3A3] uppercase tracking-widest font-medium mb-3">
             Install
           </p>
-          <div className="font-mono text-sm rounded-lg bg-white border border-[#E5E5E5] px-4 py-3">
-            <span className="text-[#A3A3A3] select-none">$ </span>
-            <span className="text-[#0A0A0A]">{command}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 font-mono text-sm rounded-lg bg-white border border-[#E5E5E5] px-4 py-3 overflow-x-auto">
+              <span className="text-[#A3A3A3] select-none">$ </span>
+              <span className="text-[#0A0A0A]">{command}</span>
+            </div>
+            <CopyButton command={command} />
           </div>
         </div>
 

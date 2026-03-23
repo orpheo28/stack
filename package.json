@@ -23,6 +23,7 @@
     "test:cli": "turbo test --filter=usedev",
     "test:web": "turbo test --filter=@stack/web",
     "test:security": "turbo test:security --filter=usedev",
+    "test:e2e": "turbo test --filter=usedev",
     "prepare": "husky"
   },
   "devDependencies": {

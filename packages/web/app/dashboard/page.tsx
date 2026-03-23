@@ -43,19 +43,7 @@ export default async function DashboardPage(): Promise<React.JSX.Element> {
         ).length
       : 0
 
-  if (handle === null) {
-    return (
-      <div className="p-10">
-        <h1 className="text-2xl font-semibold text-[#0A0A0A] mb-4">Dashboard</h1>
-        <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-8 text-center max-w-lg">
-          <p className="text-[#737373] mb-4">You haven&apos;t published a setup yet.</p>
-          <p className="text-sm text-[#A3A3A3] font-mono">
-            Run <span className="text-[#0A0A0A]">stack publish</span> to create your profile.
-          </p>
-        </div>
-      </div>
-    )
-  }
+  if (handle === null) redirect('/onboarding')
 
   const percentileLabel =
     handle.percentile !== null ? `Top ${(100 - handle.percentile).toFixed(0)}%` : '—'
